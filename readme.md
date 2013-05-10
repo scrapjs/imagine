@@ -1,4 +1,4 @@
-# Improvise.js vivifies templates
+# Improvise.js makes templates alive
 
 WIP
 
@@ -38,7 +38,6 @@ With improvise.js I no more need to make fake content and markup. Just do the te
 ## Getting started
 
 1. Write [django-complaint](http://paularmstrong.github.io/swig/docs/#browser) templates:
-
 ```html
 <body>
 	<h1>Hello, {{ name }}!</h1>
@@ -51,26 +50,22 @@ With improvise.js I no more need to make fake content and markup. Just do the te
 			{{ post.author }} | {{ post.date }}
 		</article>
 	{% endfor %}
-
 </body>
 ```
 
-2. And get some live:
-
+2. Get life:
 ```html
 <script src="improvise.js"/>
 ```
 
 ## Common motives
 
-By default there are plenty of motives supported:
-
-post …
+All [schema.org](http://schema.org) entities are supported.
 
 
 ## Custom motives
 
-If you come up [find yourself] with custom data needed, you’re [recommended] to describe it separately:
+If you’re faced with custom data needed, you have to describe "data" property in options:
 ```html
 <script>
 var improvise = {
