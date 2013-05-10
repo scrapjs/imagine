@@ -1,0 +1,15 @@
+<h1>Hello, {{ name }}!</h1>
+<p>{{ intro }}</p>
+
+{% for post in posts %}
+	<article>
+		<header>{{ post.title }}</header>
+		{{ post.content }}
+		{{ post.author }} | {{ post.date }}
+	</article>
+{% endfor %}
+
+<script src="../lib/swig.js"></script>
+<script src="../lib/traceur/src/runtime/runtime.js"></script>
+<script src="../build/improvise.js"></script>
+</body>
