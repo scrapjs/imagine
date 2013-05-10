@@ -1,6 +1,8 @@
-# Improvise.js generates content into your templates
+# Improvise.js vivifies templates
 
-Caption ideas:
+WIP
+
+<!--Caption ideas:
 
 * improvise.js
 * get-some-life.js
@@ -11,9 +13,9 @@ Caption ideas:
 * resurrector.js
 * illusory-data.js
 * illusionist.js
-* illusion.js
+* illusion.js-->
 
-Now the proccess of making site looks something like:
+My proccess of making site looks something like this:
 
 1. Do design or sketches
 2. Do markup 
@@ -30,7 +32,7 @@ I’d better feel like doing this way:
 3. Correct CSS iteratively, each time having new content
 …
 
-With improvise.js you no more need to make fake content and markup. Just do the templates straightway.
+With improvise.js I no more need to make fake content and markup. Just do the templates right away.
 
 
 ## Getting started
@@ -53,10 +55,10 @@ With improvise.js you no more need to make fake content and markup. Just do the 
 </body>
 ```
 
-2. And get the dead some live:
+2. And get some live:
 
 ```html
-<script src="Improvise-live.js"/>
+<script src="improvise.js"/>
 ```
 
 ## Common motives
