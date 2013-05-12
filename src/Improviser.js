@@ -1,21 +1,16 @@
 /* Main data-generator class */
 
-class Improviser {
-	static options {
-		"locale": "en_EN",
-		"data": {},
-		//live: false
-	};
+var Improviser = function(){
 
-	//Strips script tags etc
-	public static stripTags (htmlString){		
-		htmlString = htmlString.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+}
 
-		return htmlString;
-	}
+Improviser.stripTags = function(htmlString) {		
+	htmlString = htmlString.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
 
-	//Evals template string
-	public static eval (str, name = "template") {
+	return htmlString;
+};
+
+Improviser.eval = function(str, name) {
 		var self = this;
 
 		str = self.stripTags(str);
@@ -50,7 +45,7 @@ class Improviser {
 
 		return tpl(data);
 	}
-}
+
 
 /*
 

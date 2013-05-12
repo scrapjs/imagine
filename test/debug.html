@@ -1,5 +1,5 @@
-<h1>Hello, {{ name }}!</h1>
-<p>{{ intro }}</p>
+<h1>Hello, {{ page.title }}!</h1>
+<p>{{ page.intro }}</p>
 
 {% for post in posts %}
 	<article>
@@ -10,17 +10,25 @@
 {% endfor %}
 
 <script>
-var improvise = {
-	data: {
-		page:{
-			title: "Page caption"
+improvise = {
+	data: {		
+		"page":{
+			"title": "{{ lorem s1 }}",
+			"intro": "{{ lorem p1 }}"
+		},
+		"posts": ["{{ post }}", 15],
+		"post" : {
+			"title" : " {{ lorem 20 }} ",
+			"content" : " {{ lorem p3 }} ",
+			"author" : "{{ name }}",
+			"date" : "{{ date }}"
 		}
 	}
 }
 </script>
 
 <script src="../lib/swig.js"></script>
-<script src="../lib/traceur/src/runtime/runtime.js"></script>
-<script src="../build/improvise.js"></script>
+<script src="../src/Improviser.js"></script>
+<script src="../src/improvise.js"></script>
 
 </body>

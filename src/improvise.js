@@ -2,5 +2,10 @@
 
 //NOTE: An alternate way is to go throught all document children except script, …
 
-var content = Improviser.evalHTML(document.body.innerHTML);
+var defaults = {
+
+}
+var options = window.improvise || defaults;
+
+var content = Improviser.eval(document.body.innerHTML);
 document.body.innerHTML = content;
