@@ -7,5 +7,9 @@ var defaults = {
 }
 var options = window.improvise || defaults;
 
-var content = Improviser.eval(document.body.innerHTML);
+var Improviser = new Improviser(options);
+
+//console.log(Improviser)
+
+var content = Improviser.evalDjango(document.body.innerHTML);
 document.body.innerHTML = content;

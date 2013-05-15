@@ -147,4 +147,6 @@ Improvise.js tries to fill template in page with data obtained either from inter
 ## TODO & notes
 
 * Locales should be launchable from browser like `<script src="../lib/faker/en_EN.js"></script>`
-* Make through ES6 compiler
+* Make different tempate engines compilers, call them like django-faker.js, smarty-faker.js etc
+* Check is offline (through options) and insert stub image if offline.
+* Make random-image generator (think how)
