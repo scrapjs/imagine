@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Tests</title>
+	<link rel="stylesheet" href="qunit.css">
+</head>
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+	
+	<script src="../data/ru_RU/Language.js"></script>
+	<script src="../src/util.js"></script>
+
+	<script src="qunit.js"></script>
+
+	<script type="text/javascript">
+	//
+		test( "randNum", function() {
+			var isOk = [false, false, false];
+			for (var i = 0; i < 30; i++){
+				var c = randNum(-1.2, 1.2);
+				if (c === 1){
+					isOk[2] = true;
+				}
+				if (c === 0){
+					isOk[1] = true;
+				}
+				if (c === -1){
+					isOk[0] = true;
+				}
+			}
+			ok( isOk[0] && isOk[1] && isOk[2], "randNum" );
+		});
+
+	//
+		test( "randFrom", function(){
+
+		});
+
+	//
+		test( "lexnum", function(){
+			var str = "###-??-####"
+			var res = lexnum(str);
+		});
+
+	//
+		test( "replacements", function(){
+			var str = "###-??-####"
+			var res = lexnum(str);
+		});
+
+	//
+		test( "sanitize", function(){
+			var testHTML = "<html>start\n<script>123<\/script\><object\/\>\nend<\/html\>";
+			ok ( sanitize(testHTML) == "<html>start\n\nend</html>" );
+		});
+
+	</script>
+</body>
+</html>

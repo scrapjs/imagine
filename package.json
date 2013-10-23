@@ -1,13 +1,13 @@
 {
 	"name": "improvise",
 	"version": "0.0.1",
-	"description": "Generates illusory data",
+	"description": "Fills django-templates with fake data",
 	"homepage": "http://github.com/dfcreative/improvise.js",
-	"keywords": ["faker", "data", "content", "text"],
+	"keywords": ["faker", "data", "content"],
 	"author": {
 		"name": "Dmitry",
 		"email": "df.creative@gmail.com",
-		"url": "http://dfcreative.github.com/"
+		"url": "http://dfcreative.github.com/project/improvise-js/"
 	},
 	"licenses": [{
 		"type":"MIT",
@@ -15,8 +15,8 @@
 	}],
 	"repository": {
 		"type": "git",
-		"url": "http://github.com/dfcreative/graphics.js.git",
-		"web": "http://github.com/dfcreative/graphics.js"
+		"url": "http://github.com/dfcreative/improvise.js.git",
+		"web": "http://github.com/dfcreative/improvise.js"
 	},
 	"dependencies": {
 	},

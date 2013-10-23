@@ -9,9 +9,6 @@ module.exports = function(grunt) {
 		concat: {
 
 		},
-		traceur: {
-
-		},
 		uglify: {
 			options: {
 				banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
