@@ -71,11 +71,14 @@ extend(I, {
 	*	"([1-9][0-9]?)(?:, ${1}){,2}" ⇒ "14", "5" or "2, 12, 45"
 	*	""
 	*/
+	expressions: {},
 	expression: function(str){
 		//cache expression
 		if (!this.expressions[str]){
 			this.expressions[str] = new Expression(str);
 		}
+
+		console.log(this.expressions[str].toString())
 
 		return this.expressions[str].populate();
 	},

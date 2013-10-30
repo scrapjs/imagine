@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Tests</title>
+	<link rel="stylesheet" href="qunit.css">
+</head>
+<pre id="source" contenteditable=true>
+ab{0,2}c(de?f|(hj{1}k|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0,2}(y){{z}}\2{,1}\1(abc\td%4ef\*\x123)+z?
+</pre>
+
+<button id="AST">Do AST</button>
+
+<body>	
+	<script src="../src/util.js"></script>
+	<script src="../src/Token.js"></script>
+	<script src="../src/GroupToken.js"></script>
+	<script src="../src/StringToken.js"></script>
+	<script src="../src/DataToken.js"></script>
+	<script src="../src/AnyToken.js"></script>
+	<script src="../src/Expression.js"></script>
+	<script src="../src/improvise.js"></script>
+
+	<script>
+		var source = document.getElementById("source"),
+			doASTel = document.getElementById("AST"),
+			render = document.getElementById("render");
+
+		doASTel.addEventListener("click", doAST)
+
+		function doAST(){
+			console.log(improvise.expression(source.innerHTML))
+		}
+
+		doAST()
+	</script>
+</body>
+</html>

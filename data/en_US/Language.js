@@ -1,0 +1,4 @@
+extend(Language, {
+	alphabete: "abcdefghijklmnopqrstuvwxyz",
+	
+})

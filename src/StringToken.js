@@ -14,7 +14,7 @@ extend(StringToken.prototype, Token.prototype, {
 	},
 
 	toString: function(){
-		return "[" + this.alternatives + "]" + this.renderMultiplier();
+		return this.alternatives + this.renderMultiplier();
 	},
 
 	toJSON: function(){

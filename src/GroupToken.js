@@ -100,12 +100,15 @@ extend(GroupToken.prototype, Token.prototype, {
 			var sequence = this.alternatives[i];
 			//console.group(sequence)
 			for(var j = 0; j < sequence.length; j++){
-				result += sequence[i].toString();
+				result += sequence[j].toString();
 			}
+			//console.log(result)
 			//console.groupEnd();
+			if (i !== this.alternatives.length - 1) result += "|"
 		}
 
 		if (this.groupType) result += ")";
+		result += this.renderMultiplier();
 
 		return result;
 	}

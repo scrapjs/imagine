@@ -65,7 +65,7 @@ extend(Token.prototype, {
 	diapMultiplierRe: /\{[ ]*([0-9]*)[ ]*,[ ]*([0-9]*)[ ]*\}/, 
 	parseMultiplier: function(str){
 		if (typeof str === "number"){
-			return [str[0], str[0]]
+			return [str, str]
 		} else if (str instanceof Array){
 			if (str.length === 2){
 				return str;
@@ -79,13 +79,13 @@ extend(Token.prototype, {
 			} else if (str === "?"){
 				return [0,1]
 			} else if (str === "*"){
-				return [0, this.maxMultiplier]
+				return [0, this.expression.options.maxMultiplier]
 			} else if (str === "+"){
-				return [1, this.maxMultiplier]				
+				return [1, this.expression.options.maxMultiplier]				
 			} else if ((match = str.match(this.singleMultiplierRe))){
 				return [~~match[1], ~~match[1]]
 			} else if ((match = str.match(this.diapMultiplierRe))){
-				return [match[1] ? ~~match[1] : 0, match[2] ? ~~match[2] : this.maxMultiplier]
+				return [match[1] ? ~~match[1] : 0, match[2] ? ~~match[2] : this.expression.options.maxMultiplier]
 			} else {
 				return [1,1]
 			}
@@ -96,13 +96,14 @@ extend(Token.prototype, {
 		Convert multiplier to string
 	*/
 	renderMultiplier: function(){
-		if (this.multiplier[0] === 1 && this.multiplier[1] === this.maxMultiplier){
+		if (this.multiplier[0] === 1 && this.multiplier[1] === this.expression.options.maxMultiplier){
 			return "+"
-		} else if (this.multiplier[0] === 0 && this.multiplier[1] === this.maxMultiplier){
+		} else if (this.multiplier[0] === 0 && this.multiplier[1] === this.expression.options.maxMultiplier){
 			return "*"
 		} else if (this.multiplier[0] === 0 && this.multiplier[1] === 1){
 			return "?"
 		} else if(this.multiplier[0] === this.multiplier[1]){
+			if(this.multiplier[0] === 1) return ""
 			return "{" + this.multiplier[0] + "}"
 		} else {
 			return "{" + this.multiplier[0] + ", " + this.multiplier[1] + "}"

@@ -47,7 +47,7 @@ extend(Expression.prototype, {
 
 			var token = new GroupToken(group[1], group[2], this);
 			str = str.replace(group[0], "%" + token.idx);
-			
+			console.log(token.multiplier)
 			//#if DEV
 			debug && console.groupEnd();
 			//#endif
@@ -74,5 +74,10 @@ extend(Expression.prototype, {
 
 	},
 
+	/*
+	*/
+	toString: function(){
+		return this.tokens[0].toString()
+	}
 
 })
