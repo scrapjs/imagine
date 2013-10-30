@@ -9,17 +9,17 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
 	
-	<script src="../data/ru_RU/Language.js"></script>
 	<script src="../src/util.js"></script>
+	<script src="../src/improvise.js"></script>
 
 	<script src="qunit.js"></script>
 
 	<script type="text/javascript">
 	//
-		test( "randNum", function() {
+		test( "number", function() {
 			var isOk = [false, false, false];
 			for (var i = 0; i < 30; i++){
-				var c = randNum(-1.2, 1.2);
+				var c = improvise.number(-1.2, 1.2);
 				if (c === 1){
 					isOk[2] = true;
 				}
@@ -30,30 +30,28 @@
 					isOk[0] = true;
 				}
 			}
-			ok( isOk[0] && isOk[1] && isOk[2], "randNum" );
+			ok( isOk[0] && isOk[1] && isOk[2]);
 		});
 
 	//
-		test( "randFrom", function(){
+		test( "any", function(){
 
-		});
-
-	//
-		test( "lexnum", function(){
-			var str = "###-??-####"
-			var res = lexnum(str);
 		});
 
 	//
 		test( "replacements", function(){
-			var str = "###-??-####"
-			var res = lexnum(str);
+			var str = "Nnnn-??-nnnn"
+			var res = improvise.replacements(str, {
+				'N': '123456789',
+				'n': '0123456789',
+				'?': 'abcdefghijklmnopqrstuvwxyz'
+			});
 		});
 
 	//
 		test( "sanitize", function(){
 			var testHTML = "<html>start\n<script>123<\/script\><object\/\>\nend<\/html\>";
-			ok ( sanitize(testHTML) == "<html>start\n\nend</html>" );
+			ok ( improvise.sanitize(testHTML) == "<html>start\n\nend</html>" );
 		});
 
 	</script>

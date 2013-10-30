@@ -1,3 +1,6 @@
+## Notes
+* ! not to create huge list of classes copying schema.org but create data-providers and dictionary defining what data is there what synonyms it has and how fields are generated.
+
 # Improvise.js makes templates alive
 
 WIP
