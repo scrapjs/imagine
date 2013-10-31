@@ -13,7 +13,7 @@ extend(Expression.prototype, {
 
 	_constructor: function(str, options){
 		this.tokens = [];//dict of tokens
-		this.groups = [];//ordered groups to get access
+		this.groups = [];//ordered groups to get access by reference, as usually in regexps
 		this.options = extend({}, this.defaults, options);
 
 		//Escape all nested tokens pointers
@@ -22,6 +22,7 @@ extend(Expression.prototype, {
 		//Analyze branches
 		this.tokens.length = 1; //reserve place for root
 		str = this.flatten(str);
+		this.orderGroups(str);
 
 		this.tokens[0] = new GroupToken(str, 1, this);
 	},
@@ -47,7 +48,7 @@ extend(Expression.prototype, {
 
 			var token = new GroupToken(group[1], group[2], this);
 			str = str.replace(group[0], "%" + token.idx);
-			console.log(token.multiplier)
+
 			//#if DEV
 			debug && console.groupEnd();
 			//#endif
@@ -55,6 +56,18 @@ extend(Expression.prototype, {
 		}
 
 		return str;
+	},
+
+	/*
+	*	Calc groups sequence
+	*/
+	orderGroups: function(str){
+		var matchGroupRef, c = 0;
+		while ((matchGroupRef = str.match(/[^\\](%([0-9]*))/)) !== null && c < this.tokens.length){
+			if (this.tokens[~~matchGroupRef[2]].groupType === "(") this.groups.push(this.tokens[~~matchGroupRef[2]]);
+			str = str.replace(matchGroupRef[1], this.tokens[~~matchGroupRef[2]].toString(true))
+			c++;
+		}
 	},
 
 

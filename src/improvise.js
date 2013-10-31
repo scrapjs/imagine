@@ -78,6 +78,7 @@ extend(I, {
 			this.expressions[str] = new Expression(str);
 		}
 
+		console.log(this.expressions[str].groups)
 		console.log(this.expressions[str].toString())
 
 		return this.expressions[str].populate();

@@ -56,7 +56,15 @@ extend(GroupToken.prototype, Token.prototype, {
 				//#if DEV
 				debug && console.log("specSymbol:", tokenMatch)
 				//#endif
-				sequence.push(new StringToken(tokenMatch[1], tokenMatch[2], this.expression));
+
+				//TODO: test on real spec symbols
+
+				if (/0-9/.test(tokenMatch[1])){
+					//group reference
+					sequence.push(this.expression.groups[~~tokenMatch[1]])
+				} else {
+					sequence.push(new StringToken("\\" + tokenMatch[1], tokenMatch[2], this.expression));
+				}
 			} else if (tokenMatch = str.match(this.groupRefTokenRE)){
 				//#if DEV
 				debug && console.log("groupRef:", tokenMatch);
@@ -94,13 +102,17 @@ extend(GroupToken.prototype, Token.prototype, {
 		return sequence;
 	},
 
-	toString: function(){
+	toString: function(flatten){
 		var result = this.groupType;
 		for(var i = 0; i < this.alternatives.length; i++){
 			var sequence = this.alternatives[i];
 			//console.group(sequence)
-			for(var j = 0; j < sequence.length; j++){
-				result += sequence[j].toString();
+			for (var j = 0; j < sequence.length; j++){
+				if (flatten && sequence[j] instanceof GroupToken){
+					result += "%" + sequence[j].idx;
+				} else {
+					result += sequence[j].toString();
+				}
 			}
 			//console.log(result)
 			//console.groupEnd();
