@@ -11,6 +11,14 @@ extend(DataToken.prototype, Token.prototype, {
 	},
 
 	toString: function(){
-		return "{{ " + this.dataType + " }}"
+		return "{{ " + this.dataType + " }}" + this.renderMultiplier();
+	},
+
+	toJSON: function(){
+		return {
+			token: "DataToken",
+			dataType: this.dataType,
+			multiplier: this.multiplier
+		}
 	}
 });

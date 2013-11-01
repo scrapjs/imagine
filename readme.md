@@ -1,24 +1,29 @@
 ## Notes
-* ! not to create huge list of classes copying schema.org but create data-providers and dictionary defining what data is there what synonyms it has and how fields are generated.
+* ! not to create huge list of classes copying schema.org but create data-providers (like faker does) and dictionary defining what data is there what synonyms it has and how fields are generated. So to use schema.org just load dict. Meantime you can add your own dict.
+* Locales should be launchable from browser like `<script src="../lib/faker/en_EN.js"></script>`
+* Make different tempate engines compilers, call them like improvise-django.js, improvise-underscore.js etc
+* Check whether it is offline (through options) and insert stub image in that case.
+* Make random-image generator (think how)
 
-# Improvise.js makes templates alive
 
-WIP
-
-<!--Caption ideas:
+## Name ideas:
 
 * improvise.js
-* get-some-life.js
-* magic.js
+	* x get-some-life.js
+	* x magic.js
 * magic-data.js
-* live.js
-* live-data.js
-* resurrector.js
-* illusory-data.js
-* illusionist.js
-* illusion.js-->
+* zombie-data.js
+* cancer.js
+	* x live.js
+	* x live-data.js
+	* x resurrector.js
+	* x illusory-data.js
+	* x illusionist.js
+	* x illusion.js
 
-My proccess of making site looks something like this:
+## Description
+
+Proccess of making site usually similar to this:
 
 1. Do design or sketches
 2. Do markup 
@@ -28,14 +33,25 @@ My proccess of making site looks something like this:
 6. Implement templates from markup
 …
 
-I’d better feel like doing this way:
+I’d feel better doing this:
 
 1. Do design or sketches
 2. Implement templates *filling with random data automatically*
 3. Correct CSS iteratively, each time having new content
 …
 
-With improvise.js I no more need to make fake content and markup. Just do the templates right away.
+With improvise.js I no more need to make fake content and markup. I just do the templates straight away.
+
+## Features
+
+* Regexp-like expressions to generate data
+* schema.org compliand data structore
+* Defining own dictionaries to generate data
+
+## Projects use improvise.js
+
+* Feed-player
+
 
 
 ## Getting started
@@ -61,12 +77,8 @@ With improvise.js I no more need to make fake content and markup. Just do the te
 <script src="improvise.js"/>
 ```
 
-## Common motives
 
-All [schema.org](http://schema.org) entities are supported.
-
-
-## Custom motives
+## Custom data-types
 
 If you’re faced with custom data needed, you have to describe "data" property in options:
 ```html
@@ -143,13 +155,6 @@ Standart data supplied (taken from schema.org and other faker implementations)
 ```
 
 
-## Pronciple
+## Principle
 
 Improvise.js tries to fill template in page with data obtained either from interner or through faker.
-
-## TODO & notes
-
-* Locales should be launchable from browser like `<script src="../lib/faker/en_EN.js"></script>`
-* Make different tempate engines compilers, call them like django-faker.js, smarty-faker.js etc
-* Check is offline (through options) and insert stub image if offline.
-* Make random-image generator (think how)

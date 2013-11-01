@@ -26,11 +26,11 @@ extend(GroupToken.prototype, Token.prototype, {
 	anyTokenRE: /^\[([^]*)\](\?|\*|\+|\{[0-9, ]*\}|)/,
 	dataTokenRE: /^\{\{[ ]*([0-9.a-zA-Z$_-]*)[ ]*\}\}(\?|\*|\+|\{[0-9, ]*\}|)/,
 	specSymbolTokenRE: /^\\([^])(\?|\*|\+|\{[0-9, ]*\}|)/,
-	groupRefTokenRE: /^%([0-9]+)/,
+	groupStubTokenRE: /^%([0-9]+)/,
 	stringTokenRE: /^((?:[^](?![\*\?\+\{\[\%\\]|$))+[^]|[^](?=[\*\?\+\{\[\%\\]|$))(\?|\*|\+|\{[0-9, ]*\}|)/,
 	parseSequence: function(str){		
 		//#ifdef DEV
-		var debug = false
+		var debug = false;
 		//#endif
 
 		//#if DEV
@@ -59,15 +59,15 @@ extend(GroupToken.prototype, Token.prototype, {
 
 				//TODO: test on real spec symbols
 
-				if (/0-9/.test(tokenMatch[1])){
-					//group reference
-					sequence.push(this.expression.groups[~~tokenMatch[1]])
+				if (/[0-9]/.test(tokenMatch[1])){
+					//group reference like \1
+					sequence.push(new GroupRefToken(~~tokenMatch[1], tokenMatch[2], this.expression));
 				} else {
 					sequence.push(new StringToken("\\" + tokenMatch[1], tokenMatch[2], this.expression));
 				}
-			} else if (tokenMatch = str.match(this.groupRefTokenRE)){
+			} else if (tokenMatch = str.match(this.groupStubTokenRE)){
 				//#if DEV
-				debug && console.log("groupRef:", tokenMatch);
+				debug && console.log("groupStub:", tokenMatch);
 				//#endif
 				sequence.push(this.expression.tokens[tokenMatch[1]]);
 			} else if (tokenMatch = str.match(this.stringTokenRE)){
@@ -108,13 +108,12 @@ extend(GroupToken.prototype, Token.prototype, {
 			var sequence = this.alternatives[i];
 			//console.group(sequence)
 			for (var j = 0; j < sequence.length; j++){
-				if (flatten && sequence[j] instanceof GroupToken){
+				if (flatten && (sequence[j] instanceof GroupToken)){
 					result += "%" + sequence[j].idx;
 				} else {
 					result += sequence[j].toString();
 				}
 			}
-			//console.log(result)
 			//console.groupEnd();
 			if (i !== this.alternatives.length - 1) result += "|"
 		}
@@ -123,5 +122,23 @@ extend(GroupToken.prototype, Token.prototype, {
 		result += this.renderMultiplier();
 
 		return result;
+	},
+
+	toJSON: function(){
+		result = {
+			token: "GroupToken",
+			alternatives: [],
+			multiplier: this.multiplier
+		}
+
+		for (var i = 0; i < this.alternatives; i++){
+			var seq = [];
+			for (var j = 0; j < this.alternatives[i].length; j++){
+				seq.push(this.alternatives[i][j].toJSON())
+			}
+			result.alternatives.push(seq)
+		}
+
+		return result
 	}
 });

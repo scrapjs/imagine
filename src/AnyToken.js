@@ -19,7 +19,8 @@ extend(AnyToken.prototype, Token.prototype, {
 
 	toJSON: function(){
 		return {
-			alternatives: this.alternatives,
+			token: "AnyToken",
+			alternatives: this.alternatives.split(""),
 			multiplier: this.multiplier
 		}
 	}

@@ -19,6 +19,7 @@ extend(StringToken.prototype, Token.prototype, {
 
 	toJSON: function(){
 		return {
+			token: "StringToken",
 			alternatives: this.alternatives,
 			multiplier: this.multiplier
 		}

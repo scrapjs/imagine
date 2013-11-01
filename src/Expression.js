@@ -88,9 +88,14 @@ extend(Expression.prototype, {
 	},
 
 	/*
+		Returns rendered string, representing initial expression string, optimized if it is possible
 	*/
 	toString: function(){
 		return this.tokens[0].toString()
+	},
+
+	toJSON: function(){
+		return this.tokens[0].toJSON()
 	}
 
 })

@@ -46,7 +46,7 @@ extend(I, {
 	*	Returns random value from array/string passed
 	*/
 	randomFrom: function(arr){
-		return arr[Math.round(randomBetween(arr.length-1))];
+		return arr[Math.round(this.randomBetween(arr.length-1))];
 	},
 
 
@@ -54,11 +54,15 @@ extend(I, {
 	*	Apply list of replacements to the string, like {"x": "12345", "X": "0123456789"}
 	*/
 	replacements: function(str, replacements){
+		var self = this;
 		for (var rep in replacements){
-			str.replace(new RegExp("rep", "g"), function(){
-				return randFrom(replacements[rep])
+			var re = rep.replace(/[\?\*\+\\\{\}\[\]\(\)\,\.]/, function(m){return "\\" + m});
+			str = str.replace(new RegExp(re, "g"), function(){
+				return self.randomFrom(replacements[rep])
 			})
 		}
+
+		return str;
 	},
 
 
@@ -78,8 +82,7 @@ extend(I, {
 			this.expressions[str] = new Expression(str);
 		}
 
-		console.log(this.expressions[str].groups)
-		console.log(this.expressions[str].toString())
+		//console.log(this.expressions[str].toString())
 
 		return this.expressions[str].populate();
 	},

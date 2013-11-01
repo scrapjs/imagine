@@ -46,7 +46,11 @@ extend(Token.prototype, {
 		Simple JSON representer
 	*/
 	toJSON: function(){
-
+		return {
+			token: "Token",
+			alternatives: this.alternatives,
+			multiplier: this.multiplier
+		}
 	},
 
 	/*

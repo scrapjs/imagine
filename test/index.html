@@ -10,16 +10,22 @@
 	<div id="qunit-fixture"></div>
 	
 	<script src="../src/util.js"></script>
+	<script src="../src/Token.js"></script>
+	<script src="../src/GroupToken.js"></script>
+	<script src="../src/GroupRefToken.js"></script>
+	<script src="../src/StringToken.js"></script>
+	<script src="../src/DataToken.js"></script>
+	<script src="../src/AnyToken.js"></script>
+	<script src="../src/Expression.js"></script>
 	<script src="../src/improvise.js"></script>
 
 	<script src="qunit.js"></script>
 
 	<script type="text/javascript">
-	//
-		test( "number", function() {
+		test( "randomBetween", function() {
 			var isOk = [false, false, false];
 			for (var i = 0; i < 30; i++){
-				var c = improvise.number(-1.2, 1.2);
+				var c = Math.round(improvise.randomBetween(-1.2, 1.2));
 				if (c === 1){
 					isOk[2] = true;
 				}
@@ -33,26 +39,47 @@
 			ok( isOk[0] && isOk[1] && isOk[2]);
 		});
 
-	//
-		test( "any", function(){
-
+		test( "randomFrom", function(){
+			var arr = [1,2,3,4,5];
+			isOk = [];
+			for (var i = 0; i < 30; i++){
+				var c = improvise.randomFrom(arr);
+				var idx = arr.indexOf(c);
+				if (idx >= 0) isOk[idx] = true;
+			}
+			ok(isOk.length === 5);
 		});
 
-	//
 		test( "replacements", function(){
-			var str = "Nnnn-??-nnnn"
-			var res = improvise.replacements(str, {
+			var str = "Nn?-?";
+			var replacements = {
 				'N': '123456789',
 				'n': '0123456789',
 				'?': 'abcdefghijklmnopqrstuvwxyz'
-			});
+			};
+			var res = improvise.replacements(str, replacements);
+			ok (replacements['N'].indexOf(res[0]) >= 0 &&
+				replacements['n'].indexOf(res[1]) >= 0 &&
+				replacements['?'].indexOf(res[2]) >= 0 &&
+				res[3] === "-" &&
+				replacements['?'].indexOf(res[4]) >= 0, "Replacements failed")
 		});
 
-	//
 		test( "sanitize", function(){
 			var testHTML = "<html>start\n<script>123<\/script\><object\/\>\nend<\/html\>";
 			ok ( improvise.sanitize(testHTML) == "<html>start\n\nend</html>" );
 		});
+
+		test("expression toString", function(){
+			//TODO: this test
+			var str = "ab{0,2}c(?:de?f|(hj{1}k|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0,2}(y){{z}}\\2{,1}\\1(abc\\td%4ef\\*\\x123)+z?"
+			var expr = new Expression(str);
+
+			ok (expr.toString().indexOf("") < 0, "Some bad symbols in resulting string found")
+
+			ok (expr.toString() == "ab{0, 2}c(?:de?f|(hjk|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0, 2}(y){{ z }}\\2?\\1(abc\\td\\%4ef\\*\\x123)+z?", "Expression toString does wrong")
+
+		})
 
 	</script>
 </body>
