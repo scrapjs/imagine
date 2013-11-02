@@ -3,7 +3,7 @@
 *	Provides context for tokens.
 */
 function Expression(){
-	this._constructor.apply(this, arguments)
+	return this._constructor.apply(this, arguments)
 }
 
 extend(Expression.prototype, {
@@ -25,6 +25,8 @@ extend(Expression.prototype, {
 		this.orderGroups(str);
 
 		this.tokens[0] = new GroupToken(str, 1, this);
+
+		return this;
 	},
 
 	/*
@@ -63,7 +65,8 @@ extend(Expression.prototype, {
 	*/
 	orderGroups: function(str){
 		var matchGroupRef, c = 0;
-		while ((matchGroupRef = str.match(/[^\\](%([0-9]*))/)) !== null && c < this.tokens.length){
+		this.groups.length = 1; //start with 1;
+		while ((matchGroupRef = str.match(/(?:[^\\]|^)(%([0-9]*))/)) !== null && c < this.tokens.length){
 			if (this.tokens[~~matchGroupRef[2]].groupType === "(") this.groups.push(this.tokens[~~matchGroupRef[2]]);
 			str = str.replace(matchGroupRef[1], this.tokens[~~matchGroupRef[2]].toString(true))
 			c++;
@@ -84,7 +87,7 @@ extend(Expression.prototype, {
 		Gets generated instance based on this expression
 	*/
 	populate: function(){
-
+		return this.tokens[0].populate();
 	},
 
 	/*

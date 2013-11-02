@@ -7,7 +7,7 @@ function GroupRefToken(){
 extend(GroupRefToken.prototype, Token.prototype, {
 	parse: function(str){
 		//init vars
-		this.groupId = str;
+		this.groupId = ~~str;
 	},
 
 	toString: function(){
@@ -20,5 +20,15 @@ extend(GroupRefToken.prototype, Token.prototype, {
 			groupId: this.groupId,
 			multiplier: this.multiplier
 		}
+	},
+
+	populate: function(){
+		var times = randomBetween(this.multiplier[0], this.multiplier[1], true);
+		var result = "";
+		for (var i = 0; i < times; i++){
+			result += this.expression.groups[this.groupId].populate([1,1]);
+		}
+
+		return result;
 	}
 });

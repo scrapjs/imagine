@@ -9,8 +9,15 @@ extend(StringToken.prototype, Token.prototype, {
 		this.alternatives = str;
 	},
 
-	populate: function(){
+	populate: function(multiplier){
+		var m = multiplier || this.multiplier,
+			result = "",
+			times = randomBetween(m[0], m[1], true);
+		for (var i = 0; i < times; i++){
+			result += this.alternatives;
+		}
 
+		return result;
 	},
 
 	toString: function(){

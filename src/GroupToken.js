@@ -59,7 +59,7 @@ extend(GroupToken.prototype, Token.prototype, {
 
 				//TODO: test on real spec symbols
 
-				if (/[0-9]/.test(tokenMatch[1])){
+				if (/[1-9]/.test(tokenMatch[1])){
 					//group reference like \1
 					sequence.push(new GroupRefToken(~~tokenMatch[1], tokenMatch[2], this.expression));
 				} else {
@@ -140,5 +140,20 @@ extend(GroupToken.prototype, Token.prototype, {
 		}
 
 		return result
+	},
+
+	populate: function(multiplier){
+		var result = "",
+			m = multiplier || this.multiplier,
+			times = randomBetween(m[0], m[1]);
+
+		var seq = randomFrom(this.alternatives);
+		for (var i = 0; i < times; i++){
+			for (var j = 0; j < seq.length; j++){
+				result += seq[j].populate();
+			}
+		}
+
+		return result;
 	}
 });

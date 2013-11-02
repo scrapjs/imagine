@@ -20,5 +20,22 @@ extend(DataToken.prototype, Token.prototype, {
 			dataType: this.dataType,
 			multiplier: this.multiplier
 		}
+	},
+
+	populate: function(multiplier){
+		var result = "",
+			m = multiplier || this.multiplier,
+			times = randomBetween(m[0], m[1], true);
+
+		for (var i = 0; i < times; i++){
+			result += this.getData();
+		}
+
+		return result;
+	},
+
+
+	getData: function(){
+		return this.dataType;
 	}
 });
