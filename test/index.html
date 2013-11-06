@@ -17,7 +17,9 @@
 	<script src="../src/DataToken.js"></script>
 	<script src="../src/AnyToken.js"></script>
 	<script src="../src/Expression.js"></script>
-	<script src="../src/improvise.js"></script>
+	<script src="../src/Improvise.js"></script>
+
+	<script src="../data/Internet.js"></script>
 
 	<script src="qunit.js"></script>
 
@@ -81,16 +83,45 @@
 
 		})
 
-		test("expression populate", function(){
+		test("expression trivial populate email", function(){
 			var str = "(?:(greg).(semenov)|\\2.\\1)@(gmail|yahoo).com"
 			var expr = new Expression(str);
 
 			var result = expr.populate();
-			
+
 			ok (["greg.semenov@gmail.com","semenov.greg@gmail.com","semenov.greg@yahoo.com","greg.semenov@yahoo.com"].indexOf(result) >= 0, "Populate simple email failed")
 		})
 
+		test("expression AnyToken", function(){
+			var testStr = "[ab0-9cde-gа-г]";
+			ok("ab0123456789cdefgабвг".indexOf(expression(testStr)) >= 0)
+
+			testStr = "[-]"
+			ok(expression(testStr) === "-")
+
+			testStr = "[a-]"
+			ok("a-".indexOf(expression(testStr)) >= 0)
+
+			testStr = "[-u]"
+			ok("u-".indexOf(expression(testStr)) >= 0)
+
+			testStr = "[---]"
+			ok(expression(testStr) === "-")
+
+			testStr = "[a-c-f]"
+			ok("abc-f".indexOf(expression(testStr)) >= 0)
+		})
+
+
+		test("expression DataToken", function(){
+
+		})
+
 		//TODO: test front and back regexp compatability: result is matched by regexp
+
+		test("data-providers", function(){
+			//console.log(expression(Internet.email))
+		})
 
 	</script>
 </body>

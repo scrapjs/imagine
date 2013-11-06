@@ -5,9 +5,14 @@ function DataToken(){
 	this._constructor.apply(this, arguments)
 }
 extend(DataToken.prototype, Token.prototype, {
+	maxRecursionDepth: 5,
+
 	parse: function(str){
 		this.dataType = str
 		//TODO: recognize data type
+
+		//TODO: save specificity of generated data type and get access to any property written
+		//E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") }}
 	},
 
 	toString: function(){
@@ -27,6 +32,16 @@ extend(DataToken.prototype, Token.prototype, {
 			m = multiplier || this.multiplier,
 			times = randomBetween(m[0], m[1], true);
 
+		//Read data from known place, like language.alphabete
+		//Read data from unknown place, like email (search throughout the models)
+		//Eval functions, if function found
+		//Choose any from array, if data is array (and eval each element as an expression)
+		//Choose any key, if property contains keys
+		//Eval expression, if it is string
+		//Apply replacements, if there are any nearby data-elemens
+		//Prevent too long recursive calls: just outpul last as empty string
+
+
 		for (var i = 0; i < times; i++){
 			result += this.getData();
 		}
@@ -39,3 +54,7 @@ extend(DataToken.prototype, Token.prototype, {
 		return this.dataType;
 	}
 });
+
+
+//TODO
+//Data-filters
