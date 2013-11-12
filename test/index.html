@@ -17,6 +17,7 @@
 	<script src="../src/DataToken.js"></script>
 	<script src="../src/AnyToken.js"></script>
 	<script src="../src/Expression.js"></script>
+	<script src="../src/DataDescriptor.js"></script>
 	<script src="../src/Improvise.js"></script>
 
 	<script src="../data/Internet.js"></script>
@@ -24,10 +25,10 @@
 	<script src="qunit.js"></script>
 
 	<script type="text/javascript">
-		test( "randomBetween", function() {
+		test( "number, float, int, bool", function() {
 			var isOk = [false, false, false];
 			for (var i = 0; i < 30; i++){
-				var c = Math.round(improvise.randomBetween(-1.2, 1.2));
+				var c = Math.round(improvise.number(-1.2, 1.2));
 				if (c === 1){
 					isOk[2] = true;
 				}
@@ -38,19 +39,33 @@
 					isOk[0] = true;
 				}
 			}
-			ok( isOk[0] && isOk[1] && isOk[2]);
-			ok(improvise.randomBetween(12) <= 12);
+			ok( isOk[0] && isOk[1] && isOk[2], "distribution");
+			ok(improvise.number(12) <= 12, "maximal int");
+			ok (Math.max(improvise.number(12), improvise.number(12), improvise.number(12) ) >4, "minimal int");
+			ok ([0,1,2,3,4].indexOf(improvise.int(4)) >= 0, "int rounding");
+			ok ([1,2,3,4].indexOf(improvise.float(4)) < 0, "float not rounding");
+			ok ([2,3,4,5].indexOf(improvise.int(2,5)) >= 0, "int range");
+			ok (improvise.float(2,4) > 2 && improvise.float(2,4) < 4, "float range");
+			ok (improvise.int(-2, -2) === -2, "int exactness");
 		});
 
-		test( "randomFrom", function(){
+		test( "any", function(){
 			var arr = [1,2,3,4,5];
 			isOk = [];
 			for (var i = 0; i < 30; i++){
-				var c = improvise.randomFrom(arr);
+				var c = improvise.any(arr);
 				var idx = arr.indexOf(c);
 				if (idx >= 0) isOk[idx] = true;
 			}
 			ok(isOk.length === 5);
+
+			ok(any() === undefined, "empty");
+
+			ok(any(123) === 123, "number passed");
+
+			ok([1,2,3].indexOf(any(1, 2, 3)) >= 0, "sequence of arguments");
+
+			ok(any([]) === undefined, "empty array passed");
 		});
 
 		test( "replacements", function(){
@@ -65,7 +80,7 @@
 				replacements['n'].indexOf(res[1]) >= 0 &&
 				replacements['?'].indexOf(res[2]) >= 0 &&
 				res[3] === "-" &&
-				replacements['?'].indexOf(res[4]) >= 0, "Replacements failed")
+				replacements['?'].indexOf(res[4]) >= 0, "Replacements")
 		});
 
 		test( "sanitize", function(){
@@ -115,12 +130,47 @@
 
 		test("expression DataToken", function(){
 
-		})
+		});
 
 		//TODO: test front and back regexp compatability: result is matched by regexp
+		test("forward and backward expressions compatibility", function(){
+
+		});
+
+
+		test("mimic json generator repeat & index", function(){
+			console.log(populate({ name: '{{ firstName }}' }))
+
+			//repeating & index tests
+			deepEqual(populate(["{{ repeat(3) }}", '{{ index(12) }}']), [12,13,14])
+
+			deepEqual(populate(['{{ index(22) }}']), [22])
+
+			equal(populate('{{ index(23) }}'), 23)
+
+			equal(populate('{{ repeat(3) }}'), null)
+
+			deepEqual(populate(['{{ repeat(3) }}']), [,,])
+
+			deepEqual(populate([{id: '{{ index(32) }}'}]), {id: 32})
+		});
+
+		test("mimic json generator properties", function(){
+		});
+
+
+		test("populate data descriptors", function(){
+			//console.log(populate({ name: Person.name }))
+			//ok(populate({ name: Person.name }), {})
+			//console.log(expression(Internet.email))
+		})
 
 		test("data-providers", function(){
 			//console.log(expression(Internet.email))
+		})
+
+
+		test("data descriptors recognition", function(){
 		})
 
 	</script>

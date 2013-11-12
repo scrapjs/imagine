@@ -145,9 +145,9 @@ extend(GroupToken.prototype, Token.prototype, {
 	populate: function(multiplier){
 		var result = "",
 			m = multiplier || this.multiplier,
-			times = randomBetween(m[0], m[1]);
+			times = int(m[0], m[1]);
 
-		var seq = randomFrom(this.alternatives);
+		var seq = any(this.alternatives);
 		for (var i = 0; i < times; i++){
 			for (var j = 0; j < seq.length; j++){
 				result += seq[j].populate();

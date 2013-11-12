@@ -30,18 +30,20 @@ extend(DataToken.prototype, Token.prototype, {
 	populate: function(multiplier){
 		var result = "",
 			m = multiplier || this.multiplier,
-			times = randomBetween(m[0], m[1], true);
+			times = int(m[0], m[1], true);
 
+		//TODO
 		//Read data from known place, like language.alphabete
 		//Read data from unknown place, like email (search throughout the models)
-		//Eval functions, if function found
+		//Eval functions, if function matched, like {{ abc(12) }}
 		//Choose any from array, if data is array (and eval each element as an expression)
 		//Choose any key, if property contains keys
 		//Eval expression, if it is string
-		//Apply replacements, if there are any nearby data-elemens
-		//Prevent too long recursive calls: just outpul last as empty string
+		//Apply replacements, if there are any data-elemens nearby
+		//The same way, define environment to call it within. It needed to call things like {{ index(12) }}, {{ repeat(23,25) }}
+		//Prevent too long recursive calls: just output last as empty string
 
-
+		//TODO: apply context to the call of function, if it is 
 		for (var i = 0; i < times; i++){
 			result += this.getData();
 		}

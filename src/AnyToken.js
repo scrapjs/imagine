@@ -33,10 +33,10 @@ extend(AnyToken.prototype, Token.prototype, {
 	populate: function(multiplier){
 		var m = multiplier || this.multiplier,
 			result = "",
-			times = randomBetween(m[0], m[1], true);
+			times = int(m[0], m[1], true);
 
 		for (var i = 0; i < times; i++){
-			result += randomFrom(this.alternatives)
+			result += any(this.alternatives)
 		}
 
 		return result;

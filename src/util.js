@@ -14,26 +14,44 @@ function extend(a){
 /*
 *	Returns number between from and to.
 *	If @to is omitted, returns number between 0 and @from
+* number(from, to, round?), number(to, round?), number(round?)
 */
-function randomBetween(from, to, round){
-	if (to === true || to === false) {
-		return Math.round(Math.random() * from)
-	} else if (to === undefined || to === null) {		
-		return (Math.random() * from)
-	} else {
-		if (round) {
-			return Math.round( Math.random() * (to - from) + from)
-		} else {
-			return ( Math.random() * (to - from) + from)
-		}
+function number(a, b, c){
+	var from = Number.MIN_VALUE, to = Number.MAX_VALUE, r = false;
+	if (a === true || a === false || a === undefined){
+		r = !!a;
+	} else if (b === true || b === false || b === undefined) {
+		r = !!b;
+		to = parseFloat(a);
+		from = 0;
+	} else if (c === true || c === false || c === undefined) {
+		from = parseFloat(a);
+		to = parseFloat(b);
+		r = !!c
 	}
+	var result = Math.random() * (to - from) + from;
+	return r ? Math.round( result ) : result;
+}
+function float(from, to){
+	if (to === undefined) return number(from, false);
+	return number(from, to, false)
+}
+function int(from, to){
+	if (to === undefined) return number(from, true);
+	return number(from, to, true)
+}
+function bool(){
+	return !!Math.round(Math.random())
 }
 
 /*
 *	Returns random value from array/string passed
 */
-function randomFrom(arr){
-	return arr[randomBetween(arr.length-1, true)];
+function any(arr){
+	if (!arr) return arr;
+	if (arr.length !== undefined) return arr[int(arr.length-1)];
+	if (arguments.length > 1) return arguments[int(arguments.length-1)];
+	return arr;
 }
 
 /*
@@ -44,7 +62,7 @@ function replacements(str, replacements){
 	for (var rep in replacements){
 		var re = rep.replace(/[\?\*\+\\\{\}\[\]\(\)\,\.]/, function(m){return "\\" + m});
 		str = str.replace(new RegExp(re, "g"), function(){
-			return self.randomFrom(replacements[rep])
+			return any(replacements[rep])
 		})
 	}
 
@@ -86,4 +104,13 @@ function sanitize(str, tags){
 		res = res.replace(shortTagRe, '');
 	}
 	return res
+}
+
+
+/*
+* Returns randomly generated data based on dataDescriptor object passed
+*/
+function populate(dataDescriptor){
+	var dd = new DataDescriptor(dataDescriptor);
+	return dd.populate();
 }
