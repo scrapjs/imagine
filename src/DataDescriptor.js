@@ -99,37 +99,37 @@ DataDescriptor.prototype = {
 
 		//make repeating context to have access to vital variables for current level
 		var repeatStr ='',
-		levelContext = {
-			//random(1,4, randomly)
-			repeat: function(a, b, c){
-				var min = 1, max = 1, repeatTimes = 1;
-				if (b === undefined && a !== undefined){
-					max = a;
-					min = a;
-				} else if (b !== undefined && a !== undefined) {
-					max = b;
-					min = a;
-				}
+			repeatSubjects,
+			levelContext = {
+				//random(1,4)
+				repeat: function(a, b, c){
+					var min = 1, max = 1, randomly = false;
+					if (b === undefined || b === true || b === false && a !== undefined){
+						max = a;
+						min = a;
+						randomly = !!b;
+					} else if (b !== undefined && a !== undefined) {
+						max = b;
+						min = a;
+						randomly = !!c;
+					}
 
-				this.repeatTimes = int(min, max);
-
-				for (var i = 0; i < this.repeatTimes; i++){
-					this.repeatSequence.push(randomly ? any(this.repeatSubjects) : this.repeatSubjects[i % this.repeatSubjects.length])
+					return {
+						times: int(min, max),
+						randomly: randomly
+					}
 				}
-			},
-			repeatTimes: 1,
-			startingIndex: 0,
-			repeatSubjects: [],
-			repeatSequence: [] //resulting sequence of descriptors to populate
-		}
+			}
 
 		//match if first item is {{ repeat }} statement
 		//define repeat expression and subjects properly
-		var repeatMatch;
+		var repeatMatch, restArgs;
 		if (typeof listDescriptor[0] === 'string' && (repeatMatch = listDescriptor[0].match(/\{\{[ ]*repeat[ \(\),0-9]*\}\}/))){
 			repeatStr = listDescriptor[0];
+			repeatSubjects = Array.prototype.slice.call(arguments, 1);
 		} else {
-			repeatStr = '{{ repeat }}'
+			repeatStr = '{{ repeat }}';
+			repeatSubjects = Array.prototype.slice.call(arguments)
 		}
 
 		//set context for expression
@@ -137,9 +137,17 @@ DataDescriptor.prototype = {
 			context: levelContext
 		});
 
-		//if it is not matched, treat simple sequence
+		//calc repeatTimes and randomly (passed to context)
+		var repeatSettings = repeatEx.populate();
 
-		//if it is matched, repeat rest of array based on repeat options passed - randomly/times
+		//Make repeat sequence (resulting populated list)
+		var resultList = [], length = repeatSubjects.length || 1;
+		for (var i = 0; i < repeatSettings.times; i++){
+			resultList.push(this.populateDescriptor( repeatSettings.randomly ? any(repeatSubjects) : repeatSubjects[i % length] ))
+		}
+
+		//TODO: think up `randomly` issue
+		//TODO: make up passing index to populateDescriptor
 	},
 
 
@@ -147,6 +155,8 @@ DataDescriptor.prototype = {
 	* If descriptor of format {obj}
 	*/
 	populateDescriptor: function(descriptor){
+		//Go by keys, handle each properly
 
+		//Track previously added subjects to separate indexes
 	}
 }

@@ -132,6 +132,12 @@ Notation is a mix of json-generator and expression notation.
 }
 ```
 
+## Functions
+
+	`index(startFrom)`
+	Inserts index starting from integer passed.
+	If more than one model involved in repeating proccess, empty argument is considered as prolongued syntax, non-empty argument is considered as new index.
+	['{{ repeat(5)}}', '{{ index(2) }}', '{{ index }}']
 
 
 ## Projects use improvise.js

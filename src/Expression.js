@@ -17,7 +17,10 @@ extend(Expression.prototype, {
 		this.groups = [];//ordered groups to get access by reference, as usually in regexps
 		this.options = extend({}, this.defaults, options);
 
-		//Escape all nested tokens pointers
+		//Handle real RegExps passed
+		if (str instanceof RegExp) str = str.source;
+
+		//Escape all potentially nested token pointers
 		var str = this.escape(str);
 
 		//Analyze branches
@@ -50,8 +53,8 @@ extend(Expression.prototype, {
 			//#endif
 
 			var token = new GroupToken(group[1], group[2], this);
-			str = str.replace(group[0], "%" + token.idx);
-
+			str = str.replace(group[0], "%" + token.idx + "%");
+			
 			//#if DEV
 			debug && console.groupEnd();
 			//#endif
@@ -67,7 +70,7 @@ extend(Expression.prototype, {
 	orderGroups: function(str){
 		var matchGroupRef, c = 0;
 		this.groups.length = 1; //start with 1;
-		while ((matchGroupRef = str.match(/(?:[^\\]|^)(%([0-9]*))/)) !== null && c < this.tokens.length){
+		while ((matchGroupRef = str.match(/(?:[^\\]|^)(%([0-9]*)%)/)) !== null && c < this.tokens.length){
 			if (this.tokens[~~matchGroupRef[2]].groupType === "(") this.groups.push(this.tokens[~~matchGroupRef[2]]);
 			str = str.replace(matchGroupRef[1], this.tokens[~~matchGroupRef[2]].toString(true))
 			c++;

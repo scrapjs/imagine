@@ -13,6 +13,9 @@ extend(DataToken.prototype, Token.prototype, {
 
 		//TODO: save specificity of generated data type and get access to any property written
 		//E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") }}
+
+		//recognize function to call within context
+		console.log(str)
 	},
 
 	toString: function(){

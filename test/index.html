@@ -88,13 +88,18 @@
 			ok ( improvise.sanitize(testHTML) == "<html>start\n\nend</html>" );
 		});
 
-		test("expression toString", function(){
+		test("expression parsing", function(){
+			var ex1 = new Expression("(a)3")
+			ok(ex1.populate() === 'a3', "GroupEscaping")
+		})
+
+		test("expression correctness", function(){
 			var str = "ab{0,2}c(?:de?f|(hj{1}k|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0,2}(y){{z}}\\2{,1}\\1(abc\\td%4ef\\*\\x123)+z?"
 			var expr = new Expression(str);
 
-			ok (expr.toString().indexOf("") < 0, "Some bad symbols in resulting string found")
+			ok (expr.toString().indexOf("") < 0, "Bad symbols handling")
 
-			ok (expr.toString() == "ab{0, 2}c(?:de?f|(hjk|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0, 2}(y){{ z }}\\2?\\1(abc\\td\\%4ef\\*\\x123)+z?", "Expression toString does wrong")
+			ok (expr.toString() == "ab{0, 2}c(?:de?f|(hjk|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0, 2}(y){{ z }}\\2?\\1(abc\\td\\%4ef\\*\\x123)+z?", "Proper toString")
 
 		})
 
@@ -132,10 +137,12 @@
 
 		});
 
-		//TODO: test front and back regexp compatability: result is matched by regexp
 		test("forward and backward expressions compatibility", function(){
-
+			//TODO: test matching of result by the same regex as expression is
 		});
+		test("handle real regexps", function(){
+			ok (expression(/abc/) === "abc")
+		})
 
 
 		test("mimic json generator repeat & index", function(){
@@ -148,11 +155,13 @@
 
 			equal(populate('{{ index(23) }}'), 23)
 
-			equal(populate('{{ repeat(3) }}'), null)
+			equal(populate('{{ repeat(3) }}'), undefined)
 
 			deepEqual(populate(['{{ repeat(3) }}']), [,,])
 
-			deepEqual(populate([{id: '{{ index(32) }}'}]), {id: 32})
+			deepEqual(populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), {id: 32, r: undefined})
+
+			deepEqual(populate(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,2, 3,3,4, 5,4,6, 7])
 		});
 
 		test("mimic json generator properties", function(){

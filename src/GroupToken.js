@@ -24,11 +24,11 @@ extend(GroupToken.prototype, Token.prototype, {
 		Supposed that sequence does not contain alternatives | or groups ().
 	*/
 	anyTokenRE: /^\[([^]*)\](\?|\*|\+|\{[0-9, ]*\}|)/,
-	dataTokenRE: /^\{\{[ ]*([0-9.a-zA-Z$_-]*)[ ]*\}\}(\?|\*|\+|\{[0-9, ]*\}|)/,
+	dataTokenRE: /^\{\{[ ]*([0-9.a-zA-Z$_-\|\(\)]*)[ ]*\}\}(\?|\*|\+|\{[0-9, ]*\}|)/,
 	specSymbolTokenRE: /^\\([^])(\?|\*|\+|\{[0-9, ]*\}|)/,
-	groupStubTokenRE: /^%([0-9]+)/,
+	groupStubTokenRE: /^%([0-9]+)%/,
 	stringTokenRE: /^((?:[^](?![\*\?\+\{\[\%\\]|$))+[^]|[^](?=[\*\?\+\{\[\%\\]|$))(\?|\*|\+|\{[0-9, ]*\}|)/,
-	parseSequence: function(str){		
+	parseSequence: function(str){
 		//#ifdef DEV
 		var debug = false;
 		//#endif
