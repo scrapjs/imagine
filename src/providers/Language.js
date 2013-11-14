@@ -28,5 +28,10 @@ var Language = {
 		"{{ NP1 }} {{ Vtr }} {{ NP2 }} {{ NP3 }}",
 		"{{ NP1 }} {{ Vtr }} {{ NP2 }} {{ Adj }}",
 		"{{ NP1 }} {{ Vtr }} {{ NP2 }} {{ NP2 }}",
-	]
+	],
+
+	formalLetter: {
+		conslusion: ["Yours sincerely", "Yours faitfully", ],
+		intro: ["Dear Sir/Madam", "Dear (Mr {{ firstName('male') }}|Mrs {{ firstName('female') }})"]
+	}
 }

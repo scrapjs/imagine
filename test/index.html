@@ -10,13 +10,13 @@
 	<div id="qunit-fixture"></div>
 	
 	<script src="../src/util.js"></script>
+	<script src="../src/Expression.js"></script>
 	<script src="../src/Token.js"></script>
 	<script src="../src/GroupToken.js"></script>
 	<script src="../src/GroupRefToken.js"></script>
 	<script src="../src/StringToken.js"></script>
 	<script src="../src/DataToken.js"></script>
 	<script src="../src/AnyToken.js"></script>
-	<script src="../src/Expression.js"></script>
 	<script src="../src/DataDescriptor.js"></script>
 	<script src="../src/Improvise.js"></script>
 
@@ -89,8 +89,30 @@
 		});
 
 		test("expression parsing", function(){
-			var ex1 = new Expression("(a)3")
-			ok(ex1.populate() === 'a3', "GroupEscaping")
+
+			ok(improvise.expression("(a)3") === 'a3', "Group escaping: number after group")
+			ok(improvise.expression('%5%(%6%a%7%)%8%') === '%5%%6%a%7%%8%', "Group escaping: extra percents")
+			ok(improvise.expression('%5(a)') === "%5a", "Group escaping: odd percents number")
+
+			//<5>(<6>a<7>)<8>
+			var initialStr = [
+					I.groupRefBrackets[0], 5,
+					I.groupRefBrackets[1], '(',
+					I.groupRefBrackets[0], 6,
+					I.groupRefBrackets[1], 'a',
+					I.groupRefBrackets[0], 7,
+					I.groupRefBrackets[1], ')',
+					I.groupRefBrackets[0], 8,
+					I.groupRefBrackets[1]
+				].join('')
+			var resultingStr = initialStr.replace(/[\(\)]/g, '');
+
+			ok(improvise.expression(initialStr) === resultingStr, "GroupRef escaping: " + initialStr + " populate→ " + resultingStr)
+			ok(new Expression(initialStr).toString() === initialStr, "GroupRef escaping: " + initialStr + " toString→ " + new Expression(initialStr).toString())
+
+			//ok(improvise.expression('⦅5(a)') === "", "Group escaping: odd group sign")
+			//ok(improvise.expression('⦆5(a)') === "", "Group escaping: odd2 group sign")
+			//ok(improvise.expression('⦆5(a)') === "", "Group escaping: odd3 group sign")
 		})
 
 		test("expression correctness", function(){

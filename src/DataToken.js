@@ -15,7 +15,6 @@ extend(DataToken.prototype, Token.prototype, {
 		//E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") }}
 
 		//recognize function to call within context
-		console.log(str)
 	},
 
 	toString: function(){

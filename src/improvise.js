@@ -32,6 +32,9 @@ if (window[projectName]){
 	Init improviser methods
 */
 extend(I, {
+	//vars
+	groupRefBrackets: groupRefBrackets, 
+
 	//API
 	any: any,
 	int: int,
@@ -41,6 +44,5 @@ extend(I, {
 	replacements: replacements,
 	expression: expression,
 	sanitize: sanitize,
-
-	populate: populate
+	object: object
 });

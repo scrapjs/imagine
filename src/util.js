@@ -1,4 +1,18 @@
 /*
+	Vars
+*/
+groupRefBrackets = ["<", ">"]//["⦅", "⦆"];
+escaper = "\\";
+groupRefBracketRE = [
+	new RegExp(groupRefBrackets[0], "g"),
+	new RegExp(groupRefBrackets[1], "g")
+]
+escapedGroupRefBracketRE = [
+	new RegExp("\\" + escaper + groupRefBrackets[0], "g"),
+	new RegExp("\\" + escaper + groupRefBrackets[1], "g")
+]
+
+/*
 	class extender tool
 */
 function extend(a){
@@ -110,7 +124,7 @@ function sanitize(str, tags){
 /*
 * Returns randomly generated data based on dataDescriptor object passed
 */
-function populate(dataDescriptor){
+function object(dataDescriptor){
 	var dd = new DataDescriptor(dataDescriptor);
 	return dd.populate();
 }
