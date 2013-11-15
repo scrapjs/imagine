@@ -11,6 +11,7 @@ escapedGroupRefBracketRE = [
 	new RegExp("\\" + escaper + groupRefBrackets[0], "g"),
 	new RegExp("\\" + escaper + groupRefBrackets[1], "g")
 ]
+unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs"
 
 /*
 	class extender tool

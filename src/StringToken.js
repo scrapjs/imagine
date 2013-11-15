@@ -6,7 +6,12 @@ function StringToken(){
 }
 extend(StringToken.prototype, Token.prototype, {
 	parse: function(str){
-		this.alternatives = str;
+		if (str[0] === "\\"){
+			this.isUnsafe = unsafeSymbols.indexOf(str[1]) >= 0;
+			this.alternatives = str.slice(1)
+		} else {
+			this.alternatives = str
+		}
 	},
 
 	populate: function(multiplier){
@@ -21,7 +26,7 @@ extend(StringToken.prototype, Token.prototype, {
 	},
 
 	toString: function(){
-		return this.alternatives + this.renderMultiplier();
+		return (this.isUnsafe ? '\\' : '') + this.alternatives + this.renderMultiplier();
 	},
 
 	toJSON: function(){

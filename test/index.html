@@ -41,7 +41,7 @@
 			}
 			ok( isOk[0] && isOk[1] && isOk[2], "distribution");
 			ok(improvise.number(12) <= 12, "maximal int");
-			ok (Math.max(improvise.number(12), improvise.number(12), improvise.number(12) ) >4, "minimal int");
+			ok (Math.max(improvise.number(12), improvise.number(12), improvise.number(12) ) > 3, "minimal int");
 			ok ([0,1,2,3,4].indexOf(improvise.int(4)) >= 0, "int rounding");
 			ok ([1,2,3,4].indexOf(improvise.float(4)) < 0, "float not rounding");
 			ok ([2,3,4,5].indexOf(improvise.int(2,5)) >= 0, "int range");
@@ -52,7 +52,7 @@
 		test( "any", function(){
 			var arr = [1,2,3,4,5];
 			isOk = [];
-			for (var i = 0; i < 30; i++){
+			for (var i = 0; i < 40; i++){
 				var c = improvise.any(arr);
 				var idx = arr.indexOf(c);
 				if (idx >= 0) isOk[idx] = true;
@@ -110,9 +110,7 @@
 			ok(improvise.expression(initialStr) === resultingStr, "GroupRef escaping: " + initialStr + " populate→ " + resultingStr)
 			ok(new Expression(initialStr).toString() === initialStr, "GroupRef escaping: " + initialStr + " toString→ " + new Expression(initialStr).toString())
 
-			//ok(improvise.expression('⦅5(a)') === "", "Group escaping: odd group sign")
-			//ok(improvise.expression('⦆5(a)') === "", "Group escaping: odd2 group sign")
-			//ok(improvise.expression('⦆5(a)') === "", "Group escaping: odd3 group sign")
+			ok(new Expression('a(b)c').toString() === "a(b)c", "One symbol parsing: " + "a(b)c →" + new Expression('a(b)c').toString())
 		})
 
 		test("expression correctness", function(){
@@ -121,7 +119,7 @@
 
 			ok (expr.toString().indexOf("") < 0, "Bad symbols handling")
 
-			ok (expr.toString() == "ab{0, 2}c(?:de?f|(hjk|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0, 2}(y){{ z }}\\2?\\1(abc\\td\\%4ef\\*\\x123)+z?", "Proper toString")
+			ok (expr.toString() == "ab{0, 2}c(?:de?f|(hjk|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0, 2}(y){{ z }}\\2?\\1(abc\\td%4ef\\*x123)+z?", "Proper toString: " + expr.toString())
 
 		})
 
