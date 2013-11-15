@@ -15,6 +15,7 @@ extend(Expression.prototype, {
 	_constructor: function(str, options){
 		this.tokens = [];//dict of tokens
 		this.groups = [];//ordered groups to get access by reference, as usually in regexps
+
 		this.options = extend({}, Expression.defaults, options);
 
 		//Handle real RegExps passed
@@ -28,7 +29,6 @@ extend(Expression.prototype, {
 		str = this.flatten(str);
 
 		//Sort out groups		
-		this.groupRefRE = new RegExp("(?:[^\\\\]|^)(" + groupRefBrackets[0] + "([0-9]*)" + groupRefBrackets[1] + ")")		
 		this.orderGroups(str);
 
 		this.tokens[0] = new GroupToken(str, 1, this);
@@ -37,31 +37,55 @@ extend(Expression.prototype, {
 	},
 
 	/*
-		Return string with nested groups removed, replaced with group references.
+	*	Return string with nested groups removed, replaced with group references.
+	*	Start with replacing innermost tokens with references, like {{ a }} → <1>, (b) → <2>
 	*/
 	groupRE:  /(\((?:\?\:)?[^\(\)]*\))(\?|\*|\+|\{[0-9, ]*\}|)/,
+	//dataRE:  /(\{\{[^](?!)*\}\})(\?|\*|\+|\{[0-9, ]*\}|)/, //TODO: ?impossible to catch nested double-jsons
+	reversiveDataRE:  /(\?|\*|\+|\}[0-9, ]*\{|)(\}\}(?:[^](?!\{\{))*[^]\{\{)/,
 	flatten: function(str){		
 		//#ifdef DEV
-		var debug = false
+		var debug = true
 		//#endif
 
-		//build tree from innermost branches
-		var groupMatch;
-		var c = 0; //prevent infinite cycle
+		var match;
+		var c = 0, limit = 999 //prevent infinite cycle
 
-		//build innermost branches
-		while((group = str.match(this.groupRE)) !== null  && c < 9){
+		//At first, flatten data tokens
+		//It is imposible to make two front braces by JSON, but it is possible to do back-braces
+		//That may confuse parsing and it is impossible to catch them. 
+		//The trick is to inverse the string, catch data-tokens and reverse it back.		
+		//{{ int(int(3)) }}{1, 2}{{ none({a: { b: 234 }}) }}
+		//}} )}} 432 :b { :a {(enon {{}2 ,1{}} ))3(tni(tni {{
+		str = reverse(str);
+		while((match = str.match(this.reversiveDataRE)) !== null && c < limit){
 			//#if DEV
-			debug && console.group("group:", "'" + group[1] + "'", "'" + group[2] + "'")
-			//#endif
+			debug && console.group("data:", "'" + reverse(match[2]) + "'", "'" + reverse(match[1]) + "'")
+			//#endif				
 
-			var token = new GroupToken(group[1], group[2], this);
-			str = str.replace(group[0], groupRefBrackets[0] + token.idx + groupRefBrackets[1]);
+			var token = new DataToken(reverse(match[2]), reverse(match[1]), this);
+			str = str.replace(match[0], refBrackets[1] + token.idx + refBrackets[0]);
 
 			//#if DEV
 			debug && console.groupEnd();
 			//#endif
-			c++
+		}
+		str = reverse(str);
+
+		//Then flatten groups
+		c = 0;
+		while( (match = str.match(this.groupRE)) !== null  && c < limit){
+			//#if DEV
+			debug && console.group("group:", "'" + match[1] + "'", "'" + match[2] + "'")
+			//#endif				
+
+			var token = new GroupToken(match[1], match[2], this);
+			str = str.replace(match[0], refBrackets[0] + token.idx + refBrackets[1]);
+
+			//#if DEV
+			debug && console.groupEnd();
+			//#endif
+			c++;
 		}
 
 		return str;
@@ -70,12 +94,14 @@ extend(Expression.prototype, {
 	/*
 	*	Calc groups sequence
 	*/
+	groupRefRE: new RegExp("(?:[^\\\\]|^)(" + refBrackets[0] + "([0-9]*)" + refBrackets[1] + ")"),
 	orderGroups: function(str){
 		var matchGroupRef, c = 0;
 		this.groups.length = 1; //start with 1;
 		while ((matchGroupRef = str.match(this.groupRefRE)) !== null && c < this.tokens.length){
-			if (this.tokens[~~matchGroupRef[2]].groupType === "(") this.groups.push(this.tokens[~~matchGroupRef[2]]);
-			str = str.replace(matchGroupRef[1], this.tokens[~~matchGroupRef[2]].toString(true))
+			var token = this.tokens[~~matchGroupRef[2]];
+			if (token instanceof GroupToken && token.groupType === "(") this.groups.push(token);
+			str = str.replace(matchGroupRef[1], token.toString(true))
 			c++;
 		}
 	},
@@ -85,8 +111,8 @@ extend(Expression.prototype, {
 		Cleans string from occasinal token pointers
 	*/
 	escape: function(str){
-		str = str.replace(groupRefBracketRE[0], "\\" + groupRefBrackets[0]);
-		str = str.replace(groupRefBracketRE[1], "\\" + groupRefBrackets[1]);
+		str = str.replace(refBracketsRE[0], "\\" + refBrackets[0]);
+		str = str.replace(refBracketsRE[1], "\\" + refBrackets[1]);
 		return str
 	},
 
@@ -94,8 +120,8 @@ extend(Expression.prototype, {
 	* Vice-versa action: convert `\%` to `%`
 	*/
 	unescape: function(str){
-		str = str.replace(escapedGroupRefBracketRE[0], groupRefBrackets[0]);
-		str = str.replace(escapedGroupRefBracketRE[1], groupRefBrackets[1]);
+		str = str.replace(escapedRefBracketsRE[0], refBrackets[0]);
+		str = str.replace(escapedRefBracketsRE[1], refBrackets[1]);
 		return str;
 	},
 

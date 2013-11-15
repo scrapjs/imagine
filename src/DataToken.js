@@ -8,7 +8,8 @@ extend(DataToken.prototype, Token.prototype, {
 	maxRecursionDepth: 5,
 
 	parse: function(str){
-		this.dataType = str
+		console.log("dataToken", str)
+		this.dataString = str.slice(2, -2).trim();
 		//TODO: recognize data type
 
 		//TODO: save specificity of generated data type and get access to any property written
@@ -18,7 +19,7 @@ extend(DataToken.prototype, Token.prototype, {
 	},
 
 	toString: function(){
-		return "{{ " + this.dataType + " }}" + this.renderMultiplier();
+		return "{{ " + this.dataString + " }}" + this.renderMultiplier();
 	},
 
 	toJSON: function(){
@@ -46,8 +47,12 @@ extend(DataToken.prototype, Token.prototype, {
 		//Prevent too long recursive calls: just output last as empty string
 
 		//TODO: apply context to the call of function, if it is 
-		for (var i = 0; i < times; i++){
-			result += this.getData();
+		if (times === 1){
+			return this.getData();
+		} else {
+			for (var i = 0; i < times; i++){
+				result += this.getData();
+			}
 		}
 
 		return result;
@@ -55,7 +60,7 @@ extend(DataToken.prototype, Token.prototype, {
 
 
 	getData: function(){
-		return this.dataType;
+		return this.dataString;
 	}
 });
 

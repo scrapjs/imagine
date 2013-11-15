@@ -1,15 +1,15 @@
 /*
 	Vars
 */
-groupRefBrackets = ["<", ">"]//["⦅", "⦆"];
+refBrackets = ["⦅", "⦆"] //["<", ">"]
 escaper = "\\";
-groupRefBracketRE = [
-	new RegExp(groupRefBrackets[0], "g"),
-	new RegExp(groupRefBrackets[1], "g")
+refBracketsRE = [
+	new RegExp(refBrackets[0], "g"),
+	new RegExp(refBrackets[1], "g")
 ]
-escapedGroupRefBracketRE = [
-	new RegExp("\\" + escaper + groupRefBrackets[0], "g"),
-	new RegExp("\\" + escaper + groupRefBrackets[1], "g")
+escapedRefBracketsRE = [
+	new RegExp("\\" + escaper + refBrackets[0], "g"),
+	new RegExp("\\" + escaper + refBrackets[1], "g")
 ]
 unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs"
 
@@ -57,6 +57,17 @@ function int(from, to){
 }
 function bool(){
 	return !!Math.round(Math.random())
+}
+
+function none(){
+	return null
+}
+
+/*
+*	Returns reversed str
+*/
+function reverse(str){
+	return str.split('').reverse().join('');
 }
 
 /*

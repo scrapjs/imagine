@@ -24,10 +24,10 @@ extend(GroupToken.prototype, Token.prototype, {
 		Supposed that sequence does not contain alternatives | or groups ().
 	*/
 	anyTokenRE: /^\[([^]*)\](\?|\*|\+|\{[0-9, ]*\}|)/,
-	dataTokenRE: /^\{\{[ ]*([0-9.a-zA-Z$_-\|\(\)]*)[ ]*\}\}(\?|\*|\+|\{[0-9, ]*\}|)/,
+	dataTokenRE: /^\{\{[ ]*([0-9.a-zA-Z$_,-\|\(\)]*)[ ]*\}\}(\?|\*|\+|\{[0-9, ]*\}|)/,
 	specSymbolTokenRE: /^\\([^])(\?|\*|\+|\{[0-9, ]*\}|)/,
-	groupStubTokenRE: new RegExp("^" + groupRefBrackets[0] + "([0-9]+)" + groupRefBrackets[1]),
-	stringTokenRE: new RegExp("^((?:[^](?![\\*\\?\\+\\{\\[" + groupRefBrackets[0] + "\\\\]|$))+[^]|[^](?=[\\*\\?\\+\\{\\[" + groupRefBrackets[0] + "\\\\]|$))(\\?|\\*|\\+|\\{[0-9, ]*\\}|)"),
+	groupStubTokenRE: new RegExp("^" + refBrackets[0] + "([0-9]+)" + refBrackets[1]),
+	stringTokenRE: new RegExp("^((?:[^](?![\\*\\?\\+\\{\\[" + refBrackets[0] + "\\\\]|$))+[^]|[^](?=[\\*\\?\\+\\{\\[" + refBrackets[0] + "\\\\]|$))(\\?|\\*|\\+|\\{[0-9, ]*\\}|)"),
 	parseSequence: function(str){
 		//#ifdef DEV
 		var debug = false;
@@ -110,7 +110,7 @@ extend(GroupToken.prototype, Token.prototype, {
 			for (var j = 0; j < sequence.length; j++){
 				//console.log(flatten, sequence[j])
 				if (flatten && (sequence[j] instanceof GroupToken)){
-					result += groupRefBrackets[0] + sequence[j].idx + groupRefBrackets[1];
+					result += refBrackets[0] + sequence[j].idx + refBrackets[1];
 				} else {
 					result += sequence[j].toString();
 				}

@@ -96,14 +96,14 @@
 
 			//<5>(<6>a<7>)<8>
 			var initialStr = [
-					I.groupRefBrackets[0], 5,
-					I.groupRefBrackets[1], '(',
-					I.groupRefBrackets[0], 6,
-					I.groupRefBrackets[1], 'a',
-					I.groupRefBrackets[0], 7,
-					I.groupRefBrackets[1], ')',
-					I.groupRefBrackets[0], 8,
-					I.groupRefBrackets[1]
+					I.refBrackets[0], 5,
+					I.refBrackets[1], '(',
+					I.refBrackets[0], 6,
+					I.refBrackets[1], 'a',
+					I.refBrackets[0], 7,
+					I.refBrackets[1], ')',
+					I.refBrackets[0], 8,
+					I.refBrackets[1]
 				].join('')
 			var resultingStr = initialStr.replace(/[\(\)]/g, '');
 
@@ -154,7 +154,8 @@
 
 
 		test("expression DataToken", function(){
-
+			ok(expression("{{ int(0) }}") == 0, "trivial int check")
+			ok(expression("{{ none({a: { b: 234 }}) }}") === null, "correctness of nested JSON like {a: {b: }}")
 		});
 
 		test("forward and backward expressions compatibility", function(){

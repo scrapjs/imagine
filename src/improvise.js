@@ -33,7 +33,7 @@ if (window[projectName]){
 */
 extend(I, {
 	//vars
-	groupRefBrackets: groupRefBrackets, 
+	refBrackets: refBrackets, 
 
 	//API
 	any: any,
