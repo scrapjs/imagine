@@ -8,9 +8,10 @@ extend(DataToken.prototype, Token.prototype, {
 	maxRecursionDepth: 5,
 
 	parse: function(str){
-		console.log("dataToken", str)
 		this.dataString = str.slice(2, -2).trim();
 		//TODO: recognize data type
+
+		console.log(this.dataString)
 
 		//TODO: save specificity of generated data type and get access to any property written
 		//E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") }}

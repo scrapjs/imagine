@@ -1,17 +1,9 @@
 /*
 	Vars
 */
-refBrackets = ["⦅", "⦆"] //["<", ">"]
-escaper = "\\";
-refBracketsRE = [
-	new RegExp(refBrackets[0], "g"),
-	new RegExp(refBrackets[1], "g")
-]
-escapedRefBracketsRE = [
-	new RegExp("\\" + escaper + refBrackets[0], "g"),
-	new RegExp("\\" + escaper + refBrackets[1], "g")
-]
-unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs"
+var refBrackets = ["⦅", "⦆"], //["<", ">"]
+	escaper = "\\",
+	unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs"
 
 /*
 	class extender tool
@@ -130,6 +122,28 @@ function sanitize(str, tags){
 		res = res.replace(shortTagRe, '');
 	}
 	return res
+}
+
+
+
+
+/*
+*	Escapes symbols passed
+*/
+//TODO: think how to escape non-single symbols like \\x123
+function escape(str, symbols){
+	if (symbols instanceof Array) symbols = symbols.join('');
+	symbols = symbols.replace(/([\[\]\\])/g, "\\$1");
+	return str.replace(new RegExp("([" + symbols + "])", "g"), "\\$1");
+}
+
+/*
+* Vice-versa action: convert `\n` to `n`
+*/
+function unescape(str, symbols){
+	if (symbols instanceof Array) symbols = symbols.join('');
+	symbols = symbols.replace(/([\[\]\\])/g, "\\$1");
+	return str.replace(new RegExp("\\\\([" + symbols + "])", "g"), "$1");
 }
 
 

@@ -25,6 +25,17 @@
 	<script src="qunit.js"></script>
 
 	<script type="text/javascript">
+		test("escape, unescape", function(){
+			ok(escape("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
+			ok(escape("\\", "\\") === "\\\\", "escape \\");
+			ok(escape("123\\456", "\\") === "123\\\\456", "escape \\ 2");
+
+			ok(unescape("\\", "\\") === "\\", "unescape \\")
+			ok(unescape("\\\\", "\\") === "\\", "unescape \\\\")
+			ok(unescape("123\\\\456", "\\") === "123\\456", "unescape \\\\")
+			ok(unescape("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
+		})
+
 		test( "number, float, int, bool", function() {
 			var isOk = [false, false, false];
 			for (var i = 0; i < 30; i++){

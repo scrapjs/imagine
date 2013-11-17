@@ -22,7 +22,7 @@ extend(Expression.prototype, {
 		if (str instanceof RegExp) str = str.source;
 
 		//Escape all potentially nested token pointers
-		var str = this.escape(str);
+		var str = escape(str, refBrackets);
 
 		//Analyze branches
 		this.tokens.length = 1; //reserve place for root
@@ -66,7 +66,7 @@ extend(Expression.prototype, {
 		//There’s still problem with nested strings, containing shit, like "'}}'"
 		//We have to escape all brackets within strings
 		str = str.replace(this.stringRE, function(){
-			return arguments[0].replace(/([\{\}])/g, "\\$1")
+			return escape(arguments[0], "{}")
 		})
 
 		c = 0;
@@ -127,29 +127,10 @@ extend(Expression.prototype, {
 
 
 	/*
-		Cleans string from occasinal token pointers
-	*/
-	escape: function(str){
-		str = str.replace(refBracketsRE[0], "\\" + refBrackets[0]);
-		str = str.replace(refBracketsRE[1], "\\" + refBrackets[1]);
-		return str
-	},
-
-	/*
-	* Vice-versa action: convert `\%` to `%`
-	*/
-	unescape: function(str){
-		str = str.replace(escapedRefBracketsRE[0], refBrackets[0]);
-		str = str.replace(escapedRefBracketsRE[1], refBrackets[1]);
-		return str;
-	},
-
-
-	/*
 		Gets generated instance based on this expression
 	*/
 	populate: function(){
-		return this.unescape(this.tokens[0].populate());
+		return unescape(this.tokens[0].populate(), refBrackets);
 	},
 
 	/*
