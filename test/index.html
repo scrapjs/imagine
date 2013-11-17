@@ -123,7 +123,7 @@
 
 		})
 
-		test("expression trivial populate email", function(){
+		test("expression trivial populate", function(){
 			var str = "(?:(greg).(semenov)|\\2.\\1)@(gmail|yahoo).com"
 			var expr = new Expression(str);
 
@@ -131,6 +131,21 @@
 
 			ok (["greg.semenov@gmail.com","semenov.greg@gmail.com","semenov.greg@yahoo.com","greg.semenov@yahoo.com"].indexOf(result) >= 0, "Populate simple email failed")
 		})
+
+
+		test("handle real regexps", function(){
+			ok (expression(/abc/) === "abc")
+		});
+
+		test("forward and backward expressions compatibility", function(){
+			//TODO: test matching of result by the same regex as expression is
+			var regex = new RegExp("a[bc](def)g");
+			var result = expression(regex);
+			var match = result.match(regex);
+
+			ok(match[1] === "def", "Simple groups matching test")
+		});
+
 
 		test("expression AnyToken", function(){
 			var testStr = "[ab0-9cde-gа-г]";
@@ -154,16 +169,16 @@
 
 
 		test("expression DataToken", function(){
-			ok(expression("{{ int(0) }}") == 0, "trivial int check")
-			ok(expression("{{ none({a: { b: 234 }}) }}") === null, "correctness of nested JSON like {a: {b: }}")
-		});
+			ok(expression("{{ int(0) }}") == 0, "Trivial int(0) check")
+			ok(expression("{{ none({a: { b: 234 }}) }}") === null, "Correctness of nested JSON like {a: {b: }}")
+			ok(expression("{{ none('}}}}{{{{', '{{{{}}}}', {a:{}}) }}") === null, "Correction of nested vicissitudes")
 
-		test("forward and backward expressions compatibility", function(){
-			//TODO: test matching of result by the same regex as expression is
+
+			ok(expression("{{ 'abc' }}") === 'abc', "Primitives: strings")
+			ok(expression("{{ 123.456 }}") === 123.456, "Primitives: numbers")
+			ok(expression("{{ 2 + 2 }}") === 4, "Primitives: operations")
+			ok(expression("{{ function(){} }}") === 4, "Primitives: operations")
 		});
-		test("handle real regexps", function(){
-			ok (expression(/abc/) === "abc")
-		})
 
 
 		test("mimic json generator repeat & index", function(){

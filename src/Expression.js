@@ -43,13 +43,18 @@ extend(Expression.prototype, {
 	groupRE:  /(\((?:\?\:)?[^\(\)]*\))(\?|\*|\+|\{[0-9, ]*\}|)/,
 	//dataRE:  /(\{\{[^](?!)*\}\})(\?|\*|\+|\{[0-9, ]*\}|)/, //TODO: ?impossible to catch nested double-jsons
 	reversiveDataRE:  /(\?|\*|\+|\}[0-9, ]*\{|)(\}\}(?:[^](?!\{\{))*[^]\{\{)/,
+	stringRE: /(?:'[^']*'|"[^"]*")/g,
 	flatten: function(str){		
 		//#ifdef DEV
-		var debug = true
+		var debug = false
 		//#endif
 
 		var match;
-		var c = 0, limit = 999 //prevent infinite cycle
+		var c = 0, limit = 99 //prevent infinite cycle
+
+		//#ifdef DEV
+		debug && console.group("flatten: ", str)
+		//#endif
 
 		//At first, flatten data tokens
 		//It is imposible to make two front braces by JSON, but it is possible to do back-braces
@@ -57,6 +62,14 @@ extend(Expression.prototype, {
 		//The trick is to inverse the string, catch data-tokens and reverse it back.		
 		//{{ int(int(3)) }}{1, 2}{{ none({a: { b: 234 }}) }}
 		//}} )}} 432 :b { :a {(enon {{}2 ,1{}} ))3(tni(tni {{
+
+		//There’s still problem with nested strings, containing shit, like "'}}'"
+		//We have to escape all brackets within strings
+		str = str.replace(this.stringRE, function(){
+			return arguments[0].replace(/([\{\}])/g, "\\$1")
+		})
+
+		c = 0;
 		str = reverse(str);
 		while((match = str.match(this.reversiveDataRE)) !== null && c < limit){
 			//#if DEV
@@ -69,6 +82,8 @@ extend(Expression.prototype, {
 			//#if DEV
 			debug && console.groupEnd();
 			//#endif
+
+			c++
 		}
 		str = reverse(str);
 
@@ -87,6 +102,10 @@ extend(Expression.prototype, {
 			//#endif
 			c++;
 		}
+
+		//#if DEV
+		debug && console.groupEnd();
+		//#endif
 
 		return str;
 	},
