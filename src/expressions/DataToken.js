@@ -7,16 +7,34 @@ function DataToken(){
 extend(DataToken.prototype, Token.prototype, {
 	maxRecursionDepth: 5,
 
+	techSymbols: "|,()",
 	parse: function(str){
-		this.dataString = str.slice(2, -2).trim();
-		//TODO: recognize data type
+		console.group("dataToken: ", str)
 
-		console.log(this.dataString)
+		//Get rid of brackets
+		str = str.slice(2, -2).trim();
+
+		this.dataString = str;
+
+		//escape all stringy tech chars to avoid interference in parsing
+		str = str.replace(stringRE, function(){
+			return arguments[0][0] + escape(arguments[0].slice(1,-1)) + arguments[0][arguments[0].length - 1]
+		})
+
+		//Split components: source|filter1|filter2...
+		var sequence = str.split('|');
+		var source = unescape(sequence[0]);
+		var filters = sequence.slice(1);
+
+		console.log(source)
+		console.log(filters)
 
 		//TODO: save specificity of generated data type and get access to any property written
 		//E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") }}
 
 		//recognize function to call within context
+
+		console.groupEnd();
 	},
 
 	toString: function(){

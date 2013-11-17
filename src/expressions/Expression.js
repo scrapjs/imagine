@@ -21,8 +21,8 @@ extend(Expression.prototype, {
 		//Handle real RegExps passed
 		if (str instanceof RegExp) str = str.source;
 
-		//Escape all potentially nested token pointers
-		var str = escape(str, refBrackets);
+		//EscapeSymbols all potentially nested token pointers
+		var str = escapeSymbols(str, refBrackets);
 
 		//Analyze branches
 		this.tokens.length = 1; //reserve place for root
@@ -43,7 +43,6 @@ extend(Expression.prototype, {
 	groupRE:  /(\((?:\?\:)?[^\(\)]*\))(\?|\*|\+|\{[0-9, ]*\}|)/,
 	//dataRE:  /(\{\{[^](?!)*\}\})(\?|\*|\+|\{[0-9, ]*\}|)/, //TODO: ?impossible to catch nested double-jsons
 	reversiveDataRE:  /(\?|\*|\+|\}[0-9, ]*\{|)(\}\}(?:[^](?!\{\{))*[^]\{\{)/,
-	stringRE: /(?:'[^']*'|"[^"]*")/g,
 	flatten: function(str){		
 		//#ifdef DEV
 		var debug = false
@@ -65,8 +64,8 @@ extend(Expression.prototype, {
 
 		//There’s still problem with nested strings, containing shit, like "'}}'"
 		//We have to escape all brackets within strings
-		str = str.replace(this.stringRE, function(){
-			return escape(arguments[0], "{}")
+		str = str.replace(stringRE, function(){
+			return escapeSymbols(arguments[0], "{}")
 		})
 
 		c = 0;
@@ -130,7 +129,7 @@ extend(Expression.prototype, {
 		Gets generated instance based on this expression
 	*/
 	populate: function(){
-		return unescape(this.tokens[0].populate(), refBrackets);
+		return unescapeSymbols(this.tokens[0].populate(), refBrackets);
 	},
 
 	/*

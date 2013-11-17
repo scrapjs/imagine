@@ -10,13 +10,13 @@
 	<div id="qunit-fixture"></div>
 	
 	<script src="../src/util.js"></script>
-	<script src="../src/Expression.js"></script>
-	<script src="../src/Token.js"></script>
-	<script src="../src/GroupToken.js"></script>
-	<script src="../src/GroupRefToken.js"></script>
-	<script src="../src/StringToken.js"></script>
-	<script src="../src/DataToken.js"></script>
-	<script src="../src/AnyToken.js"></script>
+	<script src="../src/expressions/Expression.js"></script>
+	<script src="../src/expressions/Token.js"></script>
+	<script src="../src/expressions/GroupToken.js"></script>
+	<script src="../src/expressions/GroupRefToken.js"></script>
+	<script src="../src/expressions/StringToken.js"></script>
+	<script src="../src/expressions/DataToken.js"></script>
+	<script src="../src/expressions/AnyToken.js"></script>
 	<script src="../src/DataDescriptor.js"></script>
 	<script src="../src/Improvise.js"></script>
 
@@ -26,14 +26,16 @@
 
 	<script type="text/javascript">
 		test("escape, unescape", function(){
-			ok(escape("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
-			ok(escape("\\", "\\") === "\\\\", "escape \\");
-			ok(escape("123\\456", "\\") === "123\\\\456", "escape \\ 2");
+			ok(fixed("123", 5) === "00123", "fixed test")
 
-			ok(unescape("\\", "\\") === "\\", "unescape \\")
-			ok(unescape("\\\\", "\\") === "\\", "unescape \\\\")
-			ok(unescape("123\\\\456", "\\") === "123\\456", "unescape \\\\")
-			ok(unescape("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
+			ok(escapeSymbols("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
+			ok(escapeSymbols("\\", "\\") === "\\\\", "escape \\");
+			ok(escapeSymbols("123\\456", "\\") === "123\\\\456", "escape \\ 2");
+
+			ok(unescapeSymbols("\\", "\\") === "\\", "unescape \\")
+			ok(unescapeSymbols("\\\\", "\\") === "\\", "unescape \\\\")
+			ok(unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
+			ok(unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
 		})
 
 		test( "number, float, int, bool", function() {
@@ -181,6 +183,7 @@
 
 		test("expression DataToken", function(){
 			ok(expression("{{ int(0) }}") == 0, "Trivial int(0) check")
+
 			ok(expression("{{ none({a: { b: 234 }}) }}") === null, "Correctness of nested JSON like {a: {b: }}")
 			ok(expression("{{ none('}}}}{{{{', '{{{{}}}}', {a:{}}) }}") === null, "Correction of nested vicissitudes")
 
@@ -188,7 +191,14 @@
 			ok(expression("{{ 'abc' }}") === 'abc', "Primitives: strings")
 			ok(expression("{{ 123.456 }}") === 123.456, "Primitives: numbers")
 			ok(expression("{{ 2 + 2 }}") === 4, "Primitives: operations")
-			ok(expression("{{ function(){} }}") === 4, "Primitives: operations")
+			ok(expression("{{ function(){return 4} }}") === 4, "Primitives: functions")
+			ok(deepEqual(expression("{{ [1,{a: 2},true,'4'] }}"), [1, {a: 2}, true, '4']) , "Primitives: arrays")
+
+			//TODO: check data types
+			//ok(expression("{{ Person }}"), "Data types")
+
+
+			ok(expression("{{ 'abcdef'|capitalize|truncatechars(30, '>>>') }}", "Piping"))
 		});
 
 

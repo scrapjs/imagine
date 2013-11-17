@@ -3,7 +3,8 @@
 */
 var refBrackets = ["⦅", "⦆"], //["<", ">"]
 	escaper = "\\",
-	unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs"
+	unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs",
+	stringRE = /(?:'[^']*'|"[^"]*")/g
 
 /*
 	class extender tool
@@ -131,7 +132,7 @@ function sanitize(str, tags){
 *	Escapes symbols passed
 */
 //TODO: think how to escape non-single symbols like \\x123
-function escape(str, symbols){
+function escapeSymbols(str, symbols){
 	if (symbols instanceof Array) symbols = symbols.join('');
 	symbols = symbols.replace(/([\[\]\\])/g, "\\$1");
 	return str.replace(new RegExp("([" + symbols + "])", "g"), "\\$1");
@@ -140,10 +141,37 @@ function escape(str, symbols){
 /*
 * Vice-versa action: convert `\n` to `n`
 */
-function unescape(str, symbols){
+function unescapeSymbols(str, symbols){
 	if (symbols instanceof Array) symbols = symbols.join('');
 	symbols = symbols.replace(/([\[\]\\])/g, "\\$1");
 	return str.replace(new RegExp("\\\\([" + symbols + "])", "g"), "$1");
+}
+
+/*
+* Returns anything fixed to format
+* fixed(123, '00000') === '00123'
+* fixed(123, 2) === '12'
+* fixed(123, 6) === '000123'
+*/
+function fixed(value, format){
+	var value = value.toString();
+	var length =  value.length;
+	if (typeof format === "string"){
+		length = format.length;
+	} else if (typeof format === "number"){
+		length = Math.round(format)
+	}
+
+	if (length > value.length){
+		var l = length - value.length;
+		for (var i = l; i--;){
+			value = "0" + value;
+		}
+	} else {
+		value = value.slice(0, length);
+	}
+
+	return value;
 }
 
 
