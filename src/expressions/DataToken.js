@@ -17,20 +17,23 @@ extend(DataToken.prototype, Token.prototype, {
 		this.dataString = str;
 
 		//escape all stringy tech chars to avoid interference in parsing
-		str = str.replace(stringRE, function(){
-			return arguments[0][0] + escape(arguments[0].slice(1,-1)) + arguments[0][arguments[0].length - 1]
-		})
+		str = escapeWithin("''", str)
+		str = escapeWithin('""', str)
 
 		//Split components: source|filter1|filter2...
 		var sequence = str.split('|');
-		var source = unescape(sequence[0]);
+		var source = unescape(sequence[0]).trim();
 		var filters = sequence.slice(1);
 
-		console.log(source)
-		console.log(filters)
+		//Set up vital variables
+		this.source = new DataSource(source);
+		this.filters = [];
+		for (var i = 0; i < filters.length; i++){
+			this.filters.push(new Filter(filters[i]))
+		}
 
-		//TODO: save specificity of generated data type and get access to any property written
-		//E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") }}
+		console.log(this.source)
+		console.log(this.filters)
 
 		//recognize function to call within context
 
@@ -44,7 +47,8 @@ extend(DataToken.prototype, Token.prototype, {
 	toJSON: function(){
 		return {
 			token: "DataToken",
-			dataType: this.dataType,
+			source: this.source,
+			filters: this.filters,
 			multiplier: this.multiplier
 		}
 	},
@@ -62,7 +66,7 @@ extend(DataToken.prototype, Token.prototype, {
 		//Choose any key, if property contains keys
 		//Eval expression, if it is string
 		//Apply replacements, if there are any data-elemens nearby
-		//The same way, define environment to call it within. It needed to call things like {{ index(12) }}, {{ repeat(23,25) }}
+		//The same way, define environment to call it within. It is needed to call things like {{ index(12) }}, {{ repeat(23,25) }}
 		//Prevent too long recursive calls: just output last as empty string
 
 		//TODO: apply context to the call of function, if it is 
@@ -79,10 +83,6 @@ extend(DataToken.prototype, Token.prototype, {
 
 
 	getData: function(){
-		return this.dataString;
+		return this.source.getData();
 	}
 });
-
-
-//TODO
-//Data-filters

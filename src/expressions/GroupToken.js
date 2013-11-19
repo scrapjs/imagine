@@ -144,6 +144,8 @@ extend(GroupToken.prototype, Token.prototype, {
 	},
 
 	populate: function(multiplier){
+		//TODO: think up how to populate real types for instances, containing only data, like "{{ true }}"
+
 		var result = "",
 			m = multiplier || this.multiplier,
 			times = int(m[0], m[1]);

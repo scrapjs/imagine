@@ -134,8 +134,8 @@ function sanitize(str, tags){
 //TODO: think how to escape non-single symbols like \\x123
 function escapeSymbols(str, symbols){
 	if (symbols instanceof Array) symbols = symbols.join('');
-	symbols = symbols.replace(/([\[\]\\])/g, "\\$1");
-	return str.replace(new RegExp("([" + symbols + "])", "g"), "\\$1");
+	symbols = symbols.replace(/[\[\]\\]/g, "\\$&");
+	return str.replace(new RegExp("[" + symbols + "]", "g"), "\\$&");
 }
 
 /*
@@ -143,8 +143,22 @@ function escapeSymbols(str, symbols){
 */
 function unescapeSymbols(str, symbols){
 	if (symbols instanceof Array) symbols = symbols.join('');
-	symbols = symbols.replace(/([\[\]\\])/g, "\\$1");
+	symbols = symbols.replace(/[\[\]\\]/g, "\\$&");
 	return str.replace(new RegExp("\\\\([" + symbols + "])", "g"), "$1");
+}
+
+/*
+* Escapes every occurence of value within symbols, like `escapeWithin("''", str)`
+*/
+function escapeWithin(limiters, str){
+	return str.replace(new RegExp("(?:\\" + limiters[0] + "[^\\" + limiters[1] + "]*" + limiters[1] + ")", "g"), function(){
+		return arguments[0][0] + escape(arguments[0].slice(1,-1)) + arguments[0][arguments[0].length - 1]
+	}) 
+}
+function unescapeWithin(limiters, str){
+	return str.replace(new RegExp("(?:\\" + limiters[0] + "[^" + limiters[1] + "]*" + limiters[1] + ")", "g"), function(){
+		return arguments[0][0] + unescape(arguments[0].slice(1,-1)) + arguments[0][arguments[0].length - 1]
+	})
 }
 
 /*
