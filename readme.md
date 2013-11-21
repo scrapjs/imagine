@@ -6,6 +6,10 @@
 * Make random-image generator (think how)
 
 
+## Ideas
+* Think about splitting DataExp to the separate module
+
+
 ## Name ideas:
 
 * improvise.js

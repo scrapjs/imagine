@@ -18,6 +18,9 @@ extend(Expression.prototype, {
 
 		this.options = extend({}, Expression.defaults, options);
 
+		//define actual context
+		this.context = this.options.context;
+
 		//Handle real RegExps passed
 		if (str instanceof RegExp) str = str.source;
 

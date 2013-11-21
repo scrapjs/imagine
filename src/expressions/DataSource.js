@@ -5,10 +5,10 @@
 function DataSource(str){
 	console.group("data source: ", str)
 
-	// Starting token. Can be only simple name. E.g.: `data.` →
-	this.startToken = this.recognizeParam(str);
-	this.callSequence = []; // → .some['property']('to', ['call'], { with: 'params'})[1][2].[3]
+	//Source may be whether one of the primitives or CallSequence, like .some['property']('to', ['call'], { with: 'params'})[1][2].[3]
+	this.source = this.recognizeParam(str);
 
+	console.log("datasource ok")
 	console.groupEnd();
 }
 
@@ -17,6 +17,8 @@ DataSource.prototype = {
 	* Determines what the param is: string, data object, sequence, json etc
 	*/
 	recognizeParam: function(str){
+		console.log("recognizeParam", str)
+
 		var result = undefined;
 		//123.456
 		if ((result = parseFloat(str))){
@@ -82,17 +84,13 @@ DataSource.prototype = {
 			return result;
 		}
 
-		//data.['type'](12).maybe.['with_some']['property'].at.last(1, 'abc', [[1], 2])
-		else if (result = /(?:\[(?:'[^']+'|"[^"]+")\]|\.?[^\.]+)/g){
-			//divider: /\.?\[|\./
-			//split by this divider a sequence
-			//first word cannot be anything but name
-			//var sequence = [];
-
-			//
-			return null;
+		//data.['type'](12, 13).maybe.['with_some']['property'].at.last(1, 'abc', [[1], 2])
+		else if (/[a-z_$@]/i.test(str[0])){
+			//Then define calling sequence
+			return new CallSequence(str);
 		}
 
+		throw new Error("Can not recognize the param `" + str + "`")
 		return null;
 	},
 

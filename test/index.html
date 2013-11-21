@@ -10,7 +10,10 @@
 	<div id="qunit-fixture"></div>
 	
 	<script src="../src/util.js"></script>
+	<script src="../src/filters.js"></script>
+	<script src="../src/primitives.js"></script>
 	<script src="../src/expressions/DataSource.js"></script>
+	<script src="../src/expressions/CallSequence.js"></script>
 	<script src="../src/expressions/Filter.js"></script>
 	<script src="../src/expressions/Expression.js"></script>
 	<script src="../src/expressions/Token.js"></script>
@@ -39,7 +42,14 @@
 			ok(unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
 			ok(unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
 
-			ok(escapeWithin("{}", "123{4}567") === "123{4}567", "native escape")
+			ok(escapeWithin("{}", "123{4}567") === "123{4}567", "hooked up native escape")
+			ok(escapeWithin("{}", "{4}") === "{4}", "native 2")
+			ok(escapeWithin("{}", "{}") === "{}", "native 3"); console.clear();
+			ok(escapeWithin("{}", "a{}b") === "a{}b", "native 4"); return;
+			ok(escapeWithin("{}", "a{}b{}c") === "a{}b{}c", "native 5")
+			ok(escapeWithin("{}", "{}{}") === "{}{}", "native 6")
+			ok(escapeWithin("{}", "{{}}") === "{%28%29}", "native 7")
+			ok(escapeWithin("a(b(c(de{}f[]g()h()))))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29%29)", "complicated escape")
 		})
 
 		test( "number, float, int, bool", function() {
@@ -129,7 +139,7 @@
 
 			ok(new Expression('a(b)c').toString() === "a(b)c", "One symbol parsing: " + "a(b)c →" + new Expression('a(b)c').toString())
 		})
-
+	
 		test("expression correctness", function(){
 			var str = "ab{0,2}c(?:de?f|(hj{1}k|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0,2}(y){{z}}\\2{,1}\\1(abc\\td%4ef\\*\\x123)+z?"
 			var expr = new Expression(str);
@@ -137,7 +147,7 @@
 			ok (expr.toString().indexOf("") < 0, "Bad symbols handling")
 
 			ok (expr.toString() == "ab{0, 2}c(?:de?f|(hjk|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0, 2}(y){{ z }}\\2?\\1(abc\\td%4ef\\*x123)+z?", "Proper toString: " + expr.toString())
-
+			//TODO: find out why it is called afterwards ({{z}} and {{ o }})
 		})
 
 		test("expression trivial populate", function(){
@@ -198,11 +208,13 @@
 
 			ok(deepEqual(expression("{{ [1,{a: {b : 2}},true,,[],'4', [5,6,{}]] }}"), [1, {a: {b :2}}, true, '4',[5, 6, {}]]) , "Primitives: lists")
 
+			ok(expression("{{ 'abcdef'|capitalize|truncatechars(5, '>>>') }}") === "Abcde>>>", "Piping");
+
 			//TODO: check data types
 			//ok(expression("{{ Person }}"), "Data types")
 
-
-			ok(expression("{{ 'abcdef'|capitalize|truncatechars(5, '>>>') }}") === "Abcde>>>", "Piping");
+			//console.clear();
+			ok(expression("{{ a( b({ c: d()}), [ e([ 1, {f: 2} ]), g] )['h'].i[' j'].['k'].l(m)|n|o(p,{q:r})|s }}"), "Sophisticated source")
 		});
 
 

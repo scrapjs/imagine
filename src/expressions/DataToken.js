@@ -27,13 +27,14 @@ extend(DataToken.prototype, Token.prototype, {
 
 		//Set up vital variables
 		this.source = new DataSource(source);
+		
 		this.filters = [];
 		for (var i = 0; i < filters.length; i++){
-			this.filters.push(new Filter(filters[i]))
+			this.filters.push(new Filter(unescape(filters[i])))
 		}
 
-		console.log(this.source)
-		console.log(this.filters)
+		console.log("Datatoken source: ", this.source)
+		console.log("Datatoken filters: ", this.filters)
 
 		//recognize function to call within context
 
@@ -78,11 +79,21 @@ extend(DataToken.prototype, Token.prototype, {
 			}
 		}
 
+		console.log("Populated:", result)
+
 		return result;
 	},
 
 
 	getData: function(){
-		return this.source.getData();
+		//Makes initial source
+		var result = this.source.getData();
+
+		//Goes through all filters registered, does DataSource calls, if needed
+		for (var i = 0; i < this.filters.length; i++){
+			result = this.filters[i].process(result);
+		}
+
+		return result;
 	}
 });

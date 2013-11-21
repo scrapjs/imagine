@@ -1,5 +1,5 @@
 /*
-	How's project called
+*	How's project called
 */
 //#ifdef projectName
 	//# put 'var projectName = "' + projectName + '";'
@@ -9,14 +9,14 @@
 
 
 /*
-	Main keeper object - singleton
+*	Main keeper object - singleton
 */
 var I = {};
 window[projectName] = I;
 
 
 /*
-	Init improviser settings
+*	Init improviser settings
 */
 I.o = {
 	dataDelimiter: ["{{", "}}"], //delimiters to split data-chunks from string
@@ -29,11 +29,12 @@ if (window[projectName]){
 
 
 /*
-	Init improviser methods
+*	External methods
 */
 extend(I, {
-	//vars
+	//# if DEV
 	refBrackets: refBrackets, 
+	//# endif
 
 	//API
 	any: any,

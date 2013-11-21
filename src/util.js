@@ -149,14 +149,40 @@ function unescapeSymbols(str, symbols){
 
 /*
 * Escapes every occurence of value within symbols, like `escapeWithin("''", str)`
+* E.g. a(b(&))
+* Recursive mode returns a(b%28%26%29)
+* Non-recursive mode returns a(b(%26))
+* Recursive is by default
 */
-function escapeWithin(limiters, str){
-	return str.replace(new RegExp("(?:\\" + limiters[0] + "[^\\" + limiters[1] + "]*" + limiters[1] + ")", "g"), function(){
-		return arguments[0][0] + escape(arguments[0].slice(1,-1)) + arguments[0][arguments[0].length - 1]
-	}) 
+function escapeWithin(limiters, str, recursive){
+	var lCount = 0, //counter of nested limiters
+		cutPoint = 0,  //points to escape within
+		result = "";
+	for (var i = 0; i < str.length; i++){
+		if (str[i] === limiters[0]){
+			if (lCount === 0) {
+				result += str.slice(cutPoint, i);
+				cutPoint = i;
+				console.log("initial match", result)
+			}
+			lCount++;
+		} else if (str[i] === limiters[1]){
+			lCount--;
+			if (lCount === 0){
+				result += limiters[0] + escape(str.slice(cutPoint + 1, i)) + limiters[1];
+				cutPoint = i;
+			}
+		}
+	}
+
+	result += str.slice(cutPoint+1, str.lenght);
+
+	return result
 }
-function unescapeWithin(limiters, str){
-	return str.replace(new RegExp("(?:\\" + limiters[0] + "[^" + limiters[1] + "]*" + limiters[1] + ")", "g"), function(){
+function unescapeWithin(limiters, str, recursive){
+	//TODO
+
+	return str.replace(new RegExp("(?:\\" + limiters[0] + "[^\\" + limiters[0] + "\\" + limiters[1] + "]*\\" + limiters[1] + ")", "g"), function(){
 		return arguments[0][0] + unescape(arguments[0].slice(1,-1)) + arguments[0][arguments[0].length - 1]
 	})
 }
