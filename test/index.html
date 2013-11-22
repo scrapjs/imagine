@@ -42,14 +42,17 @@
 			ok(unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
 			ok(unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
 
-			ok(escapeWithin("{}", "123{4}567") === "123{4}567", "hooked up native escape")
-			ok(escapeWithin("{}", "{4}") === "{4}", "native 2")
-			ok(escapeWithin("{}", "{}") === "{}", "native 3"); console.clear();
-			ok(escapeWithin("{}", "a{}b") === "a{}b", "native 4"); return;
-			ok(escapeWithin("{}", "a{}b{}c") === "a{}b{}c", "native 5")
-			ok(escapeWithin("{}", "{}{}") === "{}{}", "native 6")
-			ok(escapeWithin("{}", "{{}}") === "{%28%29}", "native 7")
-			ok(escapeWithin("a(b(c(de{}f[]g()h()))))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29%29)", "complicated escape")
+			ok(escapeWithin("123{4}567", "{}") === "123{4}567", "hooked up native escape")
+			ok(escapeWithin("{4}", "{}") === "{4}", "native 2")
+			ok(escapeWithin("{}", "{}") === "{}", "native 3");
+			ok(escapeWithin("a{}b", "{}") === "a{}b", "native 4"); 
+			ok(escapeWithin("a{}b{}c{}d{e}f", "{}") === "a{}b{}c{}d{e}f", "native 5")
+			ok(escapeWithin("{}{}", "{}") === "{}{}", "native 6")
+			ok(escapeWithin("{{}}", "{}") === "{%7B%7D}", "native 7")
+			ok(escapeWithin("a(b(c(de{}f[]g()h())))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29)", "complicated escape")
+
+			var src = "a(b(c(de{}f[]g()h())))";
+			ok(unescapeWithin(escapeWithin(src, "()"), "()") === src, "reversivity of escaping")
 		})
 
 		test( "number, float, int, bool", function() {
