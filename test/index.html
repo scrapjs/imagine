@@ -53,6 +53,8 @@
 
 			var src = "a(b(c(de{}f[]g()h())))";
 			ok(unescapeWithin(escapeWithin(src, "()"), "()") === src, "reversivity of escaping")
+
+			ok(escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
 		})
 
 		test( "number, float, int, bool", function() {
@@ -216,7 +218,7 @@
 			//TODO: check data types
 			//ok(expression("{{ Person }}"), "Data types")
 
-			//console.clear();
+			console.clear();
 			ok(expression("{{ a( b({ c: d()}), [ e([ 1, {f: 2} ]), g] )['h'].i[' j'].['k'].l(m)|n|o(p,{q:r})|s }}"), "Sophisticated source")
 		});
 

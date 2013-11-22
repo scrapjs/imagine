@@ -167,25 +167,27 @@ function unescapeWithin(str, limiters){
 */
 function doWithin(str, limiters, fn){
 	var lCount = 0, //counter of nested limiters
-		cutPoint = -1,  //points to escape within
+		cutPoint = 0,  //points to escape within
 		result = "";
 	for (var i = 0; i < str.length; i++){
-		if (str[i] === limiters[0]){
+		if (str[i] === limiters[0] && (limiters[0] !== limiters[1] || (limiters[0] === limiters[1] && lCount === 0))){
 			if (lCount === 0) {
-				result += str.slice(cutPoint + 1, i);
-				cutPoint = i;
+				result += str.slice(cutPoint, i );
+				//console.log("start", cutPoint, i, result)
+				cutPoint = i+1;
 			}
 			lCount++;
 		} else if (str[i] === limiters[1]){
 			lCount--;
 			if (lCount === 0){
-				result += limiters[0] + fn(str.slice(cutPoint + 1, i)) + limiters[1];
-				cutPoint = i;
+				result += limiters[0] + fn(str.slice(cutPoint, i)) + limiters[1];
+				//console.log("end", cutPoint, i, result)
+				cutPoint = i+1;
 			}
 		}
 	}
 
-	result += str.slice(cutPoint + 1, str.lenght);
+	result += str.slice(cutPoint, str.lenght);
 
 	return result
 }

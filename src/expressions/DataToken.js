@@ -17,8 +17,8 @@ extend(DataToken.prototype, Token.prototype, {
 		this.dataString = str;
 
 		//escape all stringy tech chars to avoid interference in parsing
-		str = escapeWithin("''", str)
-		str = escapeWithin('""', str)
+		str = escapeWithin(str, "''")
+		str = escapeWithin(str, '""')
 
 		//Split components: source|filter1|filter2...
 		var sequence = str.split('|');
@@ -27,7 +27,7 @@ extend(DataToken.prototype, Token.prototype, {
 
 		//Set up vital variables
 		this.source = new DataSource(source);
-		
+
 		this.filters = [];
 		for (var i = 0; i < filters.length; i++){
 			this.filters.push(new Filter(unescape(filters[i])))
