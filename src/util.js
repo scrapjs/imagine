@@ -25,7 +25,7 @@ function extend(a){
 * number(from, to, round?), number(to, round?), number(round?)
 */
 function number(a, b, c){
-	var from = Number.MIN_VALUE, to = Number.MAX_VALUE, r = false;
+	var from = -999999, to = 999999, r = false;
 	if (a === true || a === false || a === undefined){
 		r = !!a;
 	} else if (b === true || b === false || b === undefined) {
@@ -41,10 +41,12 @@ function number(a, b, c){
 	return r ? Math.round( result ) : result;
 }
 function float(from, to){
+	if (from === undefined) return number(false);
 	if (to === undefined) return number(from, false);
 	return number(from, to, false)
 }
 function int(from, to){
+	if (from === undefined) return number(true);
 	if (to === undefined) return number(from, true);
 	return number(from, to, true)
 }
@@ -52,8 +54,8 @@ function bool(){
 	return !!Math.round(Math.random())
 }
 
-function none(){
-	return null
+function none(arg){
+	return arg || null
 }
 
 /*
@@ -97,10 +99,10 @@ function replacements(str, replacements){
 *	""
 */
 var expressions = {};
-function expression(str){
+function expression(str, context){
 	//cache expression
 	if (!expressions[str]){
-		expressions[str] = new Expression(str);
+		expressions[str] = new Expression(str, context);
 	}
 
 	return expressions[str].populate();
@@ -148,43 +150,72 @@ function unescapeSymbols(str, symbols){
 }
 
 /*
-* Escapes every occurence of value within symbols, like `escapeWithin("''", str)`
-* E.g. a(b(&))
-* Recursive mode returns a(b%28%26%29)
-* Non-recursive mode returns a(b(%26))
-* Recursive is by default
+* Escapes every occurence of value within symbols, like `escapeWithin(str, "''")`
+* E.g. `escapeWithin("a(b(&))", "()")` returns `a(b%28%26%29)`
+*
+* If multiple limiters passed, escapes all outermost variants found
+* e.g. `escapeWithin("{[]}", "[]", "{}")` escapes only once - content within "{}"
 */
-function escapeWithin(str, limiters){
-	return doWithin(str, limiters, escape)
+function escapeWithin(str){
+	return doWithin(str, escape, Array.prototype.slice.apply(arguments).slice(1))
 }
-function unescapeWithin(str, limiters){
-	return doWithin(str, limiters, unescape)	
+function unescapeWithin(str){
+	return doWithin(str, unescape, Array.prototype.slice.apply(arguments).slice(1))	
 }
 
 /*
 * Calls string handler function on the elements within limiters.
 * Used by escapeWithin, unescapeWithin 
+* limitersList (@ll) is a list of limiters to seek for limiter braces within, like ["{}", "[]", ["{{", "}}"], ...]
 */
-function doWithin(str, limiters, fn){
+function doWithin(str, fn, ll){
 	var lCount = 0, //counter of nested limiters
 		cutPoint = 0,  //points to escape within
-		result = "";
-	for (var i = 0; i < str.length; i++){
-		if (str[i] === limiters[0] && (limiters[0] !== limiters[1] || (limiters[0] === limiters[1] && lCount === 0))){
+		result = "",
+		i = 0,
+		curLim = -1,
+		llLen = ll.length;
+
+	while (i < str.length){
+		//console.group("before:", i, "lCount:" + lCount, "curLim:" + curLim)
+		//find outermost limiter from optional limiters passed
+		if (curLim < 0){
+			for (var j = 0; j < llLen; j++){
+				if (str.substr(i, ll[j][0].length) === ll[j][0]) {
+					curLim = j;
+					break;
+				}
+			}
+		}
+
+		//if insideof some limiter already
+		if ( curLim >= 0
+			&& str.substr(i, ll[curLim][0].length) === ll[curLim][0]
+			&& (ll[curLim][0] !== ll[curLim][1] || (ll[curLim][0] === ll[curLim][1] && lCount === 0))){
+			//find limiter from optional passed, if possible
 			if (lCount === 0) {
 				result += str.slice(cutPoint, i );
 				//console.log("start", cutPoint, i, result)
-				cutPoint = i+1;
+				cutPoint = i+ll[curLim][0].length;
 			}
+			i += ll[curLim][0].length;
 			lCount++;
-		} else if (str[i] === limiters[1]){
+		} else if ( curLim >= 0 && lCount > 0 && str.substr(i, ll[curLim][1].length) === ll[curLim][1]){
 			lCount--;
 			if (lCount === 0){
-				result += limiters[0] + fn(str.slice(cutPoint, i)) + limiters[1];
+				result += ll[curLim][0] + fn(str.slice(cutPoint, i)) + ll[curLim][1];
 				//console.log("end", cutPoint, i, result)
-				cutPoint = i+1;
+				i += ll[curLim][1].length;
+				cutPoint = i;
+				curLim = -1;
+			} else {
+				i += ll[curLim][1].length;
 			}
+		} else {
+			i++;
 		}
+		//console.log("after:", i, "lCount:" + lCount, "curLim:" + curLim)
+		//console.groupEnd();
 	}
 
 	result += str.slice(cutPoint, str.lenght);
@@ -226,4 +257,132 @@ function fixed(value, format){
 function object(dataDescriptor){
 	var dd = new DataDescriptor(dataDescriptor);
 	return dd.populate();
+}
+
+
+
+/*
+* Determines what the param is: string, data object, sequence, json etc
+* Used to be used within datasource, then migrated to globals due to versatility
+*/
+function recognizeParam(str, context){
+	//console.log("recognize:", str)
+	var result = undefined;
+	//123.456
+	if (!isNaN(result = parseFloat(str))){
+		return result;
+	}
+
+	//true/false
+	else if (/^true$/i.test(str)){
+		return true
+	}
+	else if (/^false$/i.test(str)){
+		return false
+	}
+
+	//techs
+	else if (str === undefined || str.length === 0 || str === "undefined"){
+		return undefined
+	}
+	else if (str === "NaN"){
+		return NaN
+	}
+	else if (str === "null"){
+		return null
+	}
+
+	//'string'
+	else if (/^(?:"[^"]*"|'[^']*')$/.test(str)){
+		return str.slice(1,-1);
+	}
+
+	//['list', 04, 'things']
+	else if (str[0] === "[" && str[str.length - 1] === "]"){
+		str = str.slice(1,-1).trim();
+		if (!str) return [];
+
+		str = escapeWithin(str, "{}", "[]");
+		var params = str.split(",");
+		var result = [];
+		for (var i = 0; i < params.length; i++){
+			//console.log("list param:", params[i])
+			params[i] = unescape(params[i]).trim();
+			result[i] = recognizeParam(params[i], context);
+		}
+
+		return result;
+	}
+
+	//{a: 1, b: 2}
+	else if (str[0] === "{" && str[str.length - 1] === "}"){
+		str = str.slice(1,-1);
+		str = str.trim();
+
+		if (!str) return {};
+
+		str = escapeWithin(str, "{}", "[]", "()", "''", '""');
+
+		var props = str.split(",");
+
+		result = {};
+		for (var i = 0; i < props.length; i++){
+			props[i] = props[i].trim()
+			var propComps = props[i].split(":");
+			var key = propComps[0].trim();
+			var value = propComps[1].trim();
+			if ((key[0] === "'" && key[key.length - 1] === "'") || (key[0] === '"' && key[key.length - 1] === '"')){
+				key = key.slice(1, -1);
+			}
+			value = unescape(value);
+			result[key] = recognizeParam(value, context);
+		}
+
+		return result;
+	}
+
+	//data.['type'](12, 13).maybe.['with_some']['property'].at.last(1, 'abc', [[1], 2])
+	else if (/[a-z_$@]/i.test(str[0])){
+		//Then define calling sequence
+		return new CallSequence(str, context);
+	}
+
+	throw new Error("Can not recognize the param `" + str + "`")
+	return null;
+}
+
+/*
+* Arguments parser returns list of arguments parsed from comma-separated string
+* Used to be used within CallSequence, then moved out in favour of versatility
+*/
+function parseArguments(str, context){
+	//console.log("parse arguments:", str)
+	if (str === undefined) return [null];
+
+	str = str.trim();
+	str = escapeWithin(str, "[]", "()", "{}", "''", '""')
+	var args = str.split(/,[ ]?/);
+
+	var result = [];
+
+	for (var i = 0; i < args.length; i++){
+		result.push(recognizeParam(unescape(args[i]), context))
+	}
+
+	return result;
+}
+
+
+/*
+* 'abC Dfef' → 'Abc def'
+*/
+function capitalize(str) {
+	return str.toString()[0].toUpperCase() + str.toString().slice(1).toLowerCase();
+}
+
+/*
+* 'abcdef' →(3, '...')→ 'abc...'
+*/
+function truncatechars(str, len, ending){
+	return str.slice(0, len) + (ending || "")
 }

@@ -67,10 +67,12 @@ extend(Expression.prototype, {
 
 		//There’s still problem with nested strings, containing shit, like "'}}'"
 		//We have to escape all brackets within strings
+		//NOTE: we cannot use escapeWithin there (it’d escape plain strings too)
 		str = str.replace(stringRE, function(){
 			return escapeSymbols(arguments[0], "{}")
 		})
 
+		//TODO: remove old-way of escaping data-tokens content
 		c = 0;
 		str = reverse(str);
 		while((match = str.match(this.reversiveDataRE)) !== null && c < limit){
@@ -78,7 +80,7 @@ extend(Expression.prototype, {
 			debug && console.group("data:", "'" + reverse(match[2]) + "'", "'" + reverse(match[1]) + "'")
 			//#endif				
 
-			var token = new DataToken(reverse(match[2]), reverse(match[1]), this);
+			var token = new DataToken(unescapeSymbols(reverse(match[2]), "{}"), reverse(match[1]), this);
 			str = str.replace(match[0], refBrackets[1] + token.idx + refBrackets[0]);
 
 			//#if DEV
@@ -113,7 +115,7 @@ extend(Expression.prototype, {
 	},
 
 	/*
-	*	Calc groups sequence
+	*	Calc groups sequence, to use them by reference within expression, like \1, \2 etc
 	*/
 	groupRefRE: new RegExp("(?:[^\\\\]|^)(" + refBrackets[0] + "([0-9]*)" + refBrackets[1] + ")"),
 	orderGroups: function(str){
@@ -132,7 +134,14 @@ extend(Expression.prototype, {
 		Gets generated instance based on this expression
 	*/
 	populate: function(){
-		return unescapeSymbols(this.tokens[0].populate(), refBrackets);
+		//console.group("populate expression:", this.toString())
+		var result = this.tokens[0].populate();
+		//console.log("pop type", result)
+		//console.groupEnd();
+		if (typeof result === "string"){
+			return unescapeSymbols(result, refBrackets);
+		}
+		return result;
 	},
 
 	/*

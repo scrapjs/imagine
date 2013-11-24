@@ -151,9 +151,14 @@ extend(GroupToken.prototype, Token.prototype, {
 			times = int(m[0], m[1]);
 
 		var seq = any(this.alternatives);
-		for (var i = 0; i < times; i++){
-			for (var j = 0; j < seq.length; j++){
-				result += seq[j].populate();
+
+		if (times === 1 && seq.length === 1){
+			return seq[0].populate();
+		} else {
+			for (var i = 0; i < times; i++){
+				for (var j = 0; j < seq.length; j++){
+					result += seq[j].populate();
+				}
 			}
 		}
 

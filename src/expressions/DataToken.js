@@ -9,7 +9,7 @@ extend(DataToken.prototype, Token.prototype, {
 
 	techSymbols: "|,()",
 	parse: function(str){
-		console.group("dataToken: ", str)
+		//console.group("dataToken: ", str)
 
 		//Get rid of brackets
 		str = str.slice(2, -2).trim();
@@ -17,28 +17,28 @@ extend(DataToken.prototype, Token.prototype, {
 		this.dataString = str;
 
 		//escape all stringy tech chars to avoid interference in parsing
-		str = escapeWithin(str, "''")
-		str = escapeWithin(str, '""')
+		str = escapeWithin(str, "''", '""')
 
 		//Split components: source|filter1|filter2...
 		var sequence = str.split('|');
 		var source = unescape(sequence[0]).trim();
 		var filters = sequence.slice(1);
 
-		//Set up vital variables
-		this.source = new DataSource(source);
+		//Set up vital variables: source
+		this.source = recognizeParam(source, this.expression.context);
 
+		//And list of filter callers
 		this.filters = [];
 		for (var i = 0; i < filters.length; i++){
-			this.filters.push(new Filter(unescape(filters[i])))
+			this.filters.push(new Filter(unescape(filters[i]), this.expression.context))
 		}
 
-		console.log("Datatoken source: ", this.source)
-		console.log("Datatoken filters: ", this.filters)
+		//console.log("Datatoken source: ", this.source)
+		//console.log("Datatoken filters: ", this.filters)
 
 		//recognize function to call within context
 
-		console.groupEnd();
+		//console.groupEnd();
 	},
 
 	toString: function(){
@@ -55,6 +55,7 @@ extend(DataToken.prototype, Token.prototype, {
 	},
 
 	populate: function(multiplier){
+		//console.group("populate datatoken:", this.toString())
 		var result = "",
 			m = multiplier || this.multiplier,
 			times = int(m[0], m[1], true);
@@ -72,6 +73,7 @@ extend(DataToken.prototype, Token.prototype, {
 
 		//TODO: apply context to the call of function, if it is 
 		if (times === 1){
+			//console.groupEnd();
 			return this.getData();
 		} else {
 			for (var i = 0; i < times; i++){
@@ -79,17 +81,24 @@ extend(DataToken.prototype, Token.prototype, {
 			}
 		}
 
-		console.log("Populated:", result)
+		//console.log("Populated:", result)
+		//console.groupEnd();
 
 		return result;
 	},
 
 
 	getData: function(){
+		var src = undefined;
 		//Makes initial source
-		var result = this.source.getData();
+		//console.log("getdata:", this.source)
+		if (this.source instanceof CallSequence) {
+			result = this.source.makeCall();
+		} else {
+			result = this.source;
+		}
 
-		//Goes through all filters registered, does DataSource calls, if needed
+		//Goes through all filters registered, does CallSequence calls, if needed
 		for (var i = 0; i < this.filters.length; i++){
 			result = this.filters[i].process(result);
 		}

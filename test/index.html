@@ -12,7 +12,6 @@
 	<script src="../src/util.js"></script>
 	<script src="../src/filters.js"></script>
 	<script src="../src/primitives.js"></script>
-	<script src="../src/expressions/DataSource.js"></script>
 	<script src="../src/expressions/CallSequence.js"></script>
 	<script src="../src/expressions/Filter.js"></script>
 	<script src="../src/expressions/Expression.js"></script>
@@ -51,10 +50,18 @@
 			ok(escapeWithin("{{}}", "{}") === "{%7B%7D}", "native 7")
 			ok(escapeWithin("a(b(c(de{}f[]g()h())))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29)", "complicated escape")
 
-			var src = "a(b(c(de{}f[]g()h())))";
-			ok(unescapeWithin(escapeWithin(src, "()"), "()") === src, "reversivity of escaping")
+			ok(escapeWithin("a{{ bc{} de{{d}}}}", ["{{", "}}"]) === "a{{%20bc%7B%7D%20de%7B%7Bd%7D%7D}}", "Long escapers")
+
+			var src = "a(b( c$( de{ $ }f[ ' 67#' ]g()h())))";
+			ok(unescapeWithin(escapeWithin(src, "()", "''", "{}"), "()", "{}", "''") === src, "reversivity of escaping")
 
 			ok(escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
+			ok(escapeWithin("[abc(def,'g ')], 'hi$jk'", "''", "()") === "[abc(def%2C%27g%20%27)], 'hi%24jk'", "Multiple escaping")
+
+		})
+
+		test("tech stuff", function(){
+			deepEqual(parseArguments("'}}}}{{{{', '{{{{}}}}'"), ['}}}}{{{{', '{{{{}}}}'], "args parsing list")
 		})
 
 		test( "number, float, int, bool", function() {
@@ -147,7 +154,7 @@
 	
 		test("expression correctness", function(){
 			var str = "ab{0,2}c(?:de?f|(hj{1}k|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0,2}(y){{z}}\\2{,1}\\1(abc\\td%4ef\\*\\x123)+z?"
-			var expr = new Expression(str);
+			var expr = new Expression(str, {context: {o: 1, z: 2}});
 
 			ok (expr.toString().indexOf("") < 0, "Bad symbols handling")
 
@@ -203,23 +210,24 @@
 		test("expression DataToken", function(){
 			ok(expression("{{ int(0) }}") == 0, "Trivial int(0) check")
 
-			ok(expression("{{ none({a: { b: 234 }}) }}") === null, "Correctness of nested JSON like {a: {b: }}")
-			ok(expression("{{ none('}}}}{{{{', '{{{{}}}}', {a:{}}) }}") === null, "Correction of nested vicissitudes")
+			deepEqual(expression("{{ none({a: { b: 234 }}) }}"), {a: {b: 234}}, "Correctness of nested JSON like {a: {b: }}")
+			ok(expression("{{ none('}}}}{{{{', '{{{{}}}}', {a:{}}) }}") === "}}}}{{{{", "Correction of nested vicissitudes")
 
 
 			ok(expression("{{ 'abc' }}") === 'abc', "Primitives: strings")
 			ok(expression("{{ -123.456 }}") === -123.456, "Primitives: numbers")
 			ok((expression("{{ true }}") === true && expression("{{ false }}") === false), "Primitives: bool")
 
-			ok(deepEqual(expression("{{ [1,{a: {b : 2}},true,,[],'4', [5,6,{}]] }}"), [1, {a: {b :2}}, true, '4',[5, 6, {}]]) , "Primitives: lists")
+			deepEqual(expression("{{ [1,{a: {b : 2}},true,,[],'4', [5,6,{}]] }}"), [1, {a: {b :2}}, true, undefined,[], '4',[5, 6, {}]] , "Primitives: lists")
 
 			ok(expression("{{ 'abcdef'|capitalize|truncatechars(5, '>>>') }}") === "Abcde>>>", "Piping");
 
 			//TODO: check data types
 			//ok(expression("{{ Person }}"), "Data types")
 
-			console.clear();
-			ok(expression("{{ a( b({ c: d()}), [ e([ 1, {f: 2} ]), g] )['h'].i[' j'].['k'].l(m)|n|o(p,{q:r})|s }}"), "Sophisticated source")
+			ok(expression("{{ a( b({ c: d()}), [ e([ 1, {f: 2} ]), g] )['h'].i[' j'].['k'].l(m)|n|o(p,{q:r})|s }}", {
+				context: {a: function(){return {h: {i: {' j': {k:{ l:I.none}}}}}}, b: I.none, d: I.none, e: I.none, h: I.none, g: 12, p: 1, m:"abc", r: null}
+			}) === "abc", "Sophisticated source")
 		});
 
 

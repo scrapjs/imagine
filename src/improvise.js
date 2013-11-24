@@ -29,7 +29,7 @@ if (window[projectName]){
 
 
 /*
-*	External methods
+*	External methods & default context
 */
 extend(I, {
 	//# if DEV
@@ -45,5 +45,9 @@ extend(I, {
 	replacements: replacements,
 	expression: expression,
 	sanitize: sanitize,
-	object: object
+	object: object,
+	none: none,
+
+	//Set of filters
+	filters: filters
 });
