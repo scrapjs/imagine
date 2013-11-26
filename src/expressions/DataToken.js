@@ -55,7 +55,7 @@ extend(DataToken.prototype, Token.prototype, {
 	},
 
 	populate: function(multiplier){
-		//console.group("populate datatoken:", this.toString())
+		//console.group("populate datatoken:", this.toString(), " with context", this.context)
 		var result = "",
 			m = multiplier || this.multiplier,
 			times = int(m[0], m[1], true);

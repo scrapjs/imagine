@@ -45,8 +45,8 @@ extend(I, {
 	replacements: replacements,
 	expression: expression,
 	sanitize: sanitize,
-	object: object,
 	none: none,
+	populate: populate,
 
 	//Set of filters
 	filters: filters

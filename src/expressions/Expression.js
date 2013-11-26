@@ -19,7 +19,7 @@ extend(Expression.prototype, {
 		this.options = extend({}, Expression.defaults, options);
 
 		//define actual context
-		this.context = this.options.context;
+		this.context = this.options.context || extend({}, I);
 
 		//Handle real RegExps passed
 		if (str instanceof RegExp) str = str.source;
@@ -37,6 +37,14 @@ extend(Expression.prototype, {
 		this.tokens[0] = new GroupToken(str, 1, this);
 
 		return this;
+	},
+
+	/*
+	* Overrides current params
+	*/
+	setParams: function(newOnes){
+		this.options = extend(this.options, newOnes);
+		this.context = this.options.context;
 	},
 
 	/*

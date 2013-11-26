@@ -4,7 +4,7 @@
 */
 function Filter(str, context){
 	//console.group("filter", str)
-	this.context = context || I;
+	this.context = extend({}, I, context);
 
 	var firstBrace = str.indexOf("(");
 

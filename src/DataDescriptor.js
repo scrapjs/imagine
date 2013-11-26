@@ -1,9 +1,10 @@
 /*
-* Data-descriptor object is in charge of API for data-descriptors
-* Why do I need a separate DataDescriptor object and not just couple of methods?
-* - Parsing happens once on creating object
-* - Separate independent module
-* - Populate multiple times of one object
+* Data-descriptor concept is similar to the one of expressions, but with data, not with strings.
+* You first initializes it, than you can populate it as many times as you wish.
+* Reasons to existence of such an object:
+* - Parsing happens once, on creating object (it is important for nested and repeated data-descriptors)
+* - It is a separate independent module
+* - One object populates multiple times
 */
 
 /* Exemplary data-descriptor
@@ -27,26 +28,25 @@ function DataDescriptor(){
 
 
 DataDescriptor.prototype = {
-	create: function(srcObject){
-		//check if parsed another DataDescriptor
-		if (srcObject instanceof DataDescriptor){
-			this = srcObject;
-		}
+	/*
+	* 
+	* Possible srcObject: string (i.e. expression), list, object or primitive
+	*/
+	create: function(srcObject, context){
+		/*
+		* this.model is a list of objects to generate.
+		* List is used conveniently, due to compliance with JSON-generator resulting data
+		*/
+		this.context = context || {
+			repeat: repeat,
+			index: index,
+			populate: this.populate
+		};
 
-		//if passed array object
-		else if (srcObject instanceof Array){
-			this.model = srcObject;
-		}
+		this.model = this.recognize(srcObject, this.context);
+		this.context.model = this.model;
 
-		//if string passed needed to parse data-descriptor
-		else if (typeof srcObject === "string"){
-			this.model = this.getDataDescriptor();
-		}
-
-		//if passed simple object
-		else {
-			this.model = [srcObject]
-		}
+		//console.log("new dd", this.model)
 
 	},
 
@@ -57,10 +57,10 @@ DataDescriptor.prototype = {
 	].join(''), "ig"),
 
 	/*
-	* Parses template string, makes model based on it.
+	* Parses @str, makes model based on it.
 	* Returns data-desctiptor parsed
 	*/
-	getDataDescriptor: function(str){
+	parseDescriptor: function(str){
 
 		var dataMatch = str.match(this.dataRegExp);
 
@@ -80,83 +80,132 @@ DataDescriptor.prototype = {
 	},
 
 	/*
-	* Fill model with random data
+	* Creates descriptor from any obj passed
 	*/
-	populate: function(descriptor){
-		if (descriptor instanceof Array){
-			return this.populateList(descriptor)
-		} else if (typeof descriptor === "string") {
-			return this.expression(descriptor)
-		} else {
-			return this.populateDescriptor(descriptor)
+	recognize: function(obj, context){
+		//check if parsed another DataDescriptor - make self refere to the origin
+		if (obj instanceof DataDescriptor){
+			return obj;
+		}
+
+		//if list is passed - use it as a basis
+		else if (obj instanceof Array){
+			return this.recognizeList(obj, context);
+		}
+
+		//if string passed - parse data-descriptor from it and init model
+		else if (typeof obj === "string"){
+			return new Expression(obj, {context: context});
+		}
+
+		//if simple object is passed - make a list from it
+		else if (obj instanceof Object){
+			return this.recognizeDescriptor(obj, context);
+		}
+
+		//otherwise do not create itseld, cause it is the same as plain value
+		else {
+			return obj
 		}
 	},
 
 	/*
-	* If descriptor of format ['{{ repeat }}'?, ...]
+	* If descriptor is of format ['{{ repeat }}'?, ...]
 	*/
-	populateList: function(listDescriptor){
+	recognizeList: function(listDescriptor, context){
+		this.context = extend(this.context, context, 
 
-		//make repeating context to have access to vital variables for current level
-		var repeatStr ='',
-			repeatSubjects,
-			levelContext = {
-				//random(1,4)
-				repeat: function(a, b, c){
-					var min = 1, max = 1, randomly = false;
-					if (b === undefined || b === true || b === false && a !== undefined){
-						max = a;
-						min = a;
-						randomly = !!b;
-					} else if (b !== undefined && a !== undefined) {
-						max = b;
-						min = a;
-						randomly = !!c;
-					}
+		//change model and repeat subjects of parent list context
+		{
+			lastIndex: undefined,
+			repeatSubjects: [],
+			model: this.model
+		});
 
-					return {
-						times: int(min, max),
-						randomly: randomly
-					}
-				}
-			}
-
-		//match if first item is {{ repeat }} statement
+		//match if first item is `{{ repeat }}` statement
 		//define repeat expression and subjects properly
-		var repeatMatch, restArgs;
-		if (typeof listDescriptor[0] === 'string' && (repeatMatch = listDescriptor[0].match(/\{\{[ ]*repeat[ \(\),0-9]*\}\}/))){
+		var repeatMatch, restArgs, repeatStr;
+		if (typeof listDescriptor[0] === 'string' && (/\{\{[ ]*repeat[ \(\),0-9]*\}\}/.test(listDescriptor[0]))){
 			repeatStr = listDescriptor[0];
-			repeatSubjects = Array.prototype.slice.call(arguments, 1);
+			restArgs = listDescriptor.slice(1);
 		} else {
 			repeatStr = '{{ repeat }}';
-			repeatSubjects = Array.prototype.slice.call(arguments)
+			restArgs = listDescriptor
 		}
+
+		//recognize repeating subjects as data-desctiptors, in order to populate them multiple times
+		for (var i = 0; i < restArgs.length; i++){
+			this.context.repeatSubjects.push(this.recognize(restArgs[i], this.context))
+		}
+
+		//console.log("list", this.context.repeatSubjects)
 
 		//set context for expression
 		var repeatEx = new Expression(repeatStr, {
-			context: levelContext
+			context: this.context
 		});
 
-		//calc repeatTimes and randomly (passed to context)
-		var repeatSettings = repeatEx.populate();
-
-		//Make repeat sequence (resulting populated list)
-		var resultList = [], length = repeatSubjects.length || 1;
-		for (var i = 0; i < repeatSettings.times; i++){
-			resultList.push(this.populateDescriptor( repeatSettings.randomly ? any(repeatSubjects) : repeatSubjects[i % length] ))
-		}
-
-		//TODO: think up `randomly` issue
-		//TODO: make up passing index to populateDescriptor
+		return repeatEx;
 	},
 
 
 	/*
 	* If descriptor of format {obj}
 	*/
-	populateDescriptor: function(descriptor){
-		//Go by keys, handle each properly
+	recognizeDescriptor: function(descriptor, context){
+		if (!descriptor) return descriptor;
 
-		//Track previously added subjects to separate indexes
+		var result = {};
+		var ctx = extend({}, context)
+		delete ctx.repeat;
+
+		//Go by keys, handle each properly
+		for (var key in descriptor){
+			if (typeof descriptor[key] === "string"){
+				result[key] = new Expression(descriptor[key], {context:ctx})
+			} else if (descriptor[key] instanceof Array){
+				result[key] = this.recognizeList(descriptor[key], context)
+			} else if (descriptor[key] instanceof Object) {
+				result[key] = this.recognizeDescriptor(descriptor[key], context);
+			} else if (typeof descriptor[key] === "function") {
+				result[key] = descriptor[key];
+			} else {
+				result[key] = descriptor[key];
+			}
+		}
+
+		return result;
+	},
+
+
+
+	/*
+	* Populate self
+	*/
+	populate: function(model){
+		if (arguments.length === 0) {
+			model = this.model
+		}
+		console.log("populate", model)
+
+		if (model instanceof Expression){
+			return model.populate();
+		} else if (model instanceof Array){
+			var result = [];
+			for (var i = 0; i < model.length; i++){
+				result.push(this.populate(model[i]))
+			}
+			return result
+		} else if (model instanceof Object){
+			var result = {}
+			//console.group("obj populate")
+			for (var key in model){
+				result[key] = this.populate(model[key]);
+			}
+			//console.groupEnd
+			return result;
+		} else {
+			return model;
+		}
 	}
 }

@@ -21,8 +21,8 @@
 	<script src="../src/expressions/StringToken.js"></script>
 	<script src="../src/expressions/DataToken.js"></script>
 	<script src="../src/expressions/AnyToken.js"></script>
-	<script src="../src/DataDescriptor.js"></script>
 	<script src="../src/Improvise.js"></script>
+	<script src="../src/DataDescriptor.js"></script>
 
 	<script src="../data/Internet.js"></script>
 
@@ -232,7 +232,6 @@
 
 
 		test("mimic json generator repeat & index", function(){
-			console.log(populate({ name: '{{ firstName }}' }))
 
 			//repeating & index tests
 			deepEqual(populate(["{{ repeat(3) }}", '{{ index(12) }}']), [12,13,14])
@@ -243,11 +242,20 @@
 
 			equal(populate('{{ repeat(3) }}'), undefined)
 
-			deepEqual(populate(['{{ repeat(3) }}']), [,,])
+			deepEqual(populate(['{{ repeat(3) }}']), [,,,])
 
-			deepEqual(populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), {id: 32, r: undefined})
+			deepEqual(populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}])
 
-			deepEqual(populate(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,2, 3,3,4, 5,4,6, 7])
+			deepEqual(populate({id: '{{ index(32) }}', r: '{{ repeat(3) }}'}), {id: 32, r: undefined})
+
+			deepEqual(populate(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,3,4,5,6,7])
+
+			deepEqual(populate(['{{ repeat(3) }}', {a: '{{ index(1) }}', b:'{{ index(2) }}', c: '{{ index }}'}]), 
+				[{a: 1, b: 1, c: 1}, {a: 2, b:2, c: 2}, {a: 3, b: 3, c: 3} ])
+
+			deepEqual(populate([['{{ repeat(3) }}', '{{ index(2) }}'], ['{{ repeat(4) }}', '{{ index(3) }}']]), [[3,4,5], [4,5,6,7]], "indexes independence")
+
+			//TODO: full-featured data-sources, nested evil
 		});
 
 		test("mimic json generator properties", function(){
