@@ -22,6 +22,7 @@
 	<script src="../src/expressions/DataToken.js"></script>
 	<script src="../src/expressions/AnyToken.js"></script>
 	<script src="../src/Improvise.js"></script>
+	<script src="../src/expressions/RepeatExpression.js"></script>
 	<script src="../src/DataDescriptor.js"></script>
 
 	<script src="../data/Internet.js"></script>
@@ -150,6 +151,8 @@
 			ok(new Expression(initialStr).toString() === initialStr, "GroupRef escaping: " + initialStr + " toString→ " + new Expression(initialStr).toString())
 
 			ok(new Expression('a(b)c').toString() === "a(b)c", "One symbol parsing: " + "a(b)c →" + new Expression('a(b)c').toString())
+
+			ok(new Expression('{{ index(1) }}').tokens.length == 2, "Catch zero token double write")
 		})
 	
 		test("expression correctness", function(){
@@ -225,35 +228,40 @@
 			//TODO: check data types
 			//ok(expression("{{ Person }}"), "Data types")
 
-			ok(expression("{{ a( b({ c: d()}), [ e([ 1, {f: 2} ]), g] )['h'].i[' j'].['k'].l(m)|n|o(p,{q:r})|s }}", {
-				context: {a: function(){return {h: {i: {' j': {k:{ l:I.none}}}}}}, b: I.none, d: I.none, e: I.none, h: I.none, g: 12, p: 1, m:"abc", r: null}
-			}) === "abc", "Sophisticated source")
+			ok(expression("{{ a( b({ c: d()}), [ e([ 1, {f: 2} ]), g] )['h'].i[' j'].['k'].l(m)|n|o(p,{q:r})|s }}", {a: function(){return {h: {i: {' j': {k:{ l:I.none}}}}}}, b: I.none, d: I.none, e: I.none, h: I.none, g: 12, p: 1, m:"abc", r: null}) === "abc", "Sophisticated source")
 		});
 
 
 		test("mimic json generator repeat & index", function(){
 
 			//repeating & index tests
-			deepEqual(populate(["{{ repeat(3) }}", '{{ index(12) }}']), [12,13,14])
+			//ok(repeat(1,3,true) === undefined, "Repeat basis")
+			deepEqual(populate([1,2,3]), [1,2,3], "repeat straightaway call")
 
-			deepEqual(populate(['{{ index(22) }}']), [22])
+			deepEqual(populate(["{{ repeat(3) }}", '{{ index(12) }}']), [12,13,14], "trivial repeat")
 
-			equal(populate('{{ index(23) }}'), 23)
+			deepEqual(populate(['{{ index(22) }}']), [22], "index only")
 
-			equal(populate('{{ repeat(3) }}'), undefined)
+			equal(populate('{{ index(23) }}'), undefined, "ignoring index")
 
-			deepEqual(populate(['{{ repeat(3) }}']), [,,,])
+			equal(populate('{{ repeat(3) }}'), undefined, "ignoring repeat")
 
-			deepEqual(populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}])
+			deepEqual(populate(['{{ repeat(3) }}']), [,,,], "repeat with no subjects")
 
-			deepEqual(populate({id: '{{ index(32) }}', r: '{{ repeat(3) }}'}), {id: 32, r: undefined})
+			//deepEqual(populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}])
 
-			deepEqual(populate(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,3,4,5,6,7])
+			deepEqual(populate([{r:undefined }]), [{r: undefined}], "undefines 1")
+			deepEqual(populate({r:undefined }), {r: undefined}, "undefines 2")
+
+			deepEqual(populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}], "nested repeat")
+			deepEqual(populate({id: '{{ index(32) }}', r: '{{ repeat(3) }}'}), {id: undefined, r: undefined}, "plain index & repeat")
+
+			deepEqual(populate(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,3,4,5,6,7], "separated indexes")
 
 			deepEqual(populate(['{{ repeat(3) }}', {a: '{{ index(1) }}', b:'{{ index(2) }}', c: '{{ index }}'}]), 
-				[{a: 1, b: 1, c: 1}, {a: 2, b:2, c: 2}, {a: 3, b: 3, c: 3} ])
+				[{a: 1, b: 1, c: 1}, {a: 2, b:2, c: 2}, {a: 3, b: 3, c: 3} ], "indexes within objects")
 
-			deepEqual(populate([['{{ repeat(3) }}', '{{ index(2) }}'], ['{{ repeat(4) }}', '{{ index(3) }}']]), [[3,4,5], [4,5,6,7]], "indexes independence")
+			deepEqual(populate([['{{ repeat(3) }}', '{{ index(2) }}'], ['{{ repeat(4) }}', '{{ index(4) }}']]), [[2,3,4], [4,5,6,7]], "indexes independence")
 
 			//TODO: full-featured data-sources, nested evil
 		});

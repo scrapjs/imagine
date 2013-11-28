@@ -14,12 +14,16 @@ extend(Token.prototype, {
 		@multiplier - how many times to repeat
 		@tokens - array of tokens to store all tokens examples in.
 	*/
-	_constructor: function(str, multiplier, expression){
+	_constructor: function(str, multiplier, expression, idx){
 		this.expression = expression;
 
 		//keep tokens list
-		this.idx = this.expression.tokens.length;
-		this.expression.tokens.push(this);
+		if (idx === undefined){
+			this.idx = this.expression.tokens.length;
+			this.expression.tokens.push(this);
+		} else {
+			this.idx = idx;
+		}
 
 		//Multiplier is a basic thing
 		this.multiplier = this.parseMultiplier(multiplier);

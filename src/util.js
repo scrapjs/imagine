@@ -75,53 +75,14 @@ function any(arr){
 	return arr;
 }
 
-/*
-* To use from within dataDescriptors lists comprehensions
-* Requires context of call
-*
-* Example call:
-* repeat(from, to, randomly) or repeat(times, randomly)
-*/
-function repeat(a, b, c){
 
-	if (!this.repeatSubjects || this.repeatSubjects.length === undefined) return undefined
-
-	console.group("repeatcall", this)
-
-	var min = 1, max = 1, randomly = false;
-	if ((b === undefined || b === true || b === false) && a !== undefined){
-		max = a;
-		min = a;
-		randomly = !!b;
-	} else if (b !== undefined && a !== undefined) {
-		max = b;
-		min = a;
-		randomly = !!c;
-	}
-
-	this.times = int(min, max);
-
-	//Make repeat sequence (resulting populated list)
-	var resultList = [], length = this.repeatSubjects.length || 1;
-	
-	for (var i = 0; i < this.times; i++){
-		resultList.push(this.populate.call(this, randomly ? this.any(this.repeatSubjects) : this.repeatSubjects[i % length] ))
-		console.log("repeat iteration", this.lastIndex)
-	}
-	console.groupEnd();
-
-	return resultList
-}
 
 /*
-* To use fromwithin data descriptors. Inserts index of item.
+* Populates any data passed
 */
-function index(from){
-	console.log("idx", this.lastIndex)
-	if (this.lastIndex === undefined) {
-		this.lastIndex = from || 0;
-	}
-	return this.lastIndex++;
+function populate(obj){
+	var dd = new DataDescriptor(obj);
+	return dd.populate();
 }
 
 
@@ -301,15 +262,6 @@ function fixed(value, format){
 	}
 
 	return value;
-}
-
-
-/*
-* Returns randomly generated data based on dataDescriptor object passed
-*/
-function populate(dataDescriptor){
-	var dd = new DataDescriptor(dataDescriptor);
-	return dd.populate();
 }
 
 

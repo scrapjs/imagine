@@ -2,8 +2,31 @@
 *	Expression represents specific structure to generate.
 *	Provides context for tokens.
 */
-function Expression(){
-	return this._constructor.apply(this, arguments)
+function Expression(str, context){
+	this.tokens = [];//dict of tokens
+	this.groups = [];//ordered groups to get access by reference, as usually in regexps
+
+	this.options = extend({}, Expression.defaults);
+
+	//define actual context
+	this.context = context;
+
+	//Handle real RegExps passed
+	if (str instanceof RegExp) str = str.source;
+
+	//EscapeSymbols all potentially nested token pointers
+	var str = escapeSymbols(str, refBrackets);
+
+	//Analyze branches
+	this.tokens.length = 1; //reserve place for root
+	str = this.flatten(str);
+
+	//Sort out groups		
+	this.orderGroups(str);
+
+	this.tokens[0] = new GroupToken(str, 1, this, 0);//this shittance writes itself twice - at the beginning and to the end.
+
+	return this;
 }
 
 Expression.defaults = {
@@ -12,39 +35,15 @@ Expression.defaults = {
 }
 
 extend(Expression.prototype, {
-	_constructor: function(str, options){
-		this.tokens = [];//dict of tokens
-		this.groups = [];//ordered groups to get access by reference, as usually in regexps
-
-		this.options = extend({}, Expression.defaults, options);
-
-		//define actual context
-		this.context = this.options.context || extend({}, I);
-
-		//Handle real RegExps passed
-		if (str instanceof RegExp) str = str.source;
-
-		//EscapeSymbols all potentially nested token pointers
-		var str = escapeSymbols(str, refBrackets);
-
-		//Analyze branches
-		this.tokens.length = 1; //reserve place for root
-		str = this.flatten(str);
-
-		//Sort out groups		
-		this.orderGroups(str);
-
-		this.tokens[0] = new GroupToken(str, 1, this);
-
-		return this;
-	},
 
 	/*
-	* Overrides current params
+	* Overrides current ctx
 	*/
-	setParams: function(newOnes){
-		this.options = extend(this.options, newOnes);
-		this.context = this.options.context;
+	setContext: function(ctx){
+		this.context = ctx;
+	},
+	getContext: function(ctx){
+		return this.context;
 	},
 
 	/*
@@ -142,7 +141,7 @@ extend(Expression.prototype, {
 		Gets generated instance based on this expression
 	*/
 	populate: function(){
-		//console.group("populate expression:", this.toString())
+		//console.group("populate expression:", this)
 		var result = this.tokens[0].populate();
 		//console.log("pop type", result)
 		//console.groupEnd();

@@ -5,6 +5,9 @@
 * - Parsing happens once, on creating object (it is important for nested and repeated data-descriptors)
 * - It is a separate independent module
 * - One object populates multiple times
+* 
+* Shortly, it’s a wrapper over any natural data-type to populate data based on this
+* It’s a safety way to create data-populator from any type of object
 */
 
 /* Exemplary data-descriptor
@@ -22,34 +25,20 @@ new DataDescriptor({
 })
 */
 
-function DataDescriptor(){
-	this.create.apply(this, arguments)
+function DataDescriptor(src, context){
+	//context to keep tacidly data related with populating expressions
+	this.context = context || extend({}, I, {
+		populate: this.populate
+	});
+
+	this.model = this.recognize(src, this.context);
+
+		this.stop = 0;
+	//console.log("new dd", this.model)
 }
 
 
 DataDescriptor.prototype = {
-	/*
-	* 
-	* Possible srcObject: string (i.e. expression), list, object or primitive
-	*/
-	create: function(srcObject, context){
-		/*
-		* this.model is a list of objects to generate.
-		* List is used conveniently, due to compliance with JSON-generator resulting data
-		*/
-		this.context = context || {
-			repeat: repeat,
-			index: index,
-			populate: this.populate
-		};
-
-		this.model = this.recognize(srcObject, this.context);
-		this.context.model = this.model;
-
-		//console.log("new dd", this.model)
-
-	},
-
 	dataRegExp: new RegExp([
 		I.o.dataDelimiter[0],
 		"[ ]*([a-zA-Z_$@][a-zA-Z_$@.0-9]*)[^", I.o.dataDelimiter[0], I.o.dataDelimiter[1], "]*",
@@ -82,130 +71,90 @@ DataDescriptor.prototype = {
 	/*
 	* Creates descriptor from any obj passed
 	*/
-	recognize: function(obj, context){
-		//check if parsed another DataDescriptor - make self refere to the origin
-		if (obj instanceof DataDescriptor){
-			return obj;
-		}
-
+	recognize: function(src){
 		//if list is passed - use it as a basis
-		else if (obj instanceof Array){
-			return this.recognizeList(obj, context);
+		if (src instanceof Array){
+			return new RepeatExpression(src, this.context);
 		}
 
 		//if string passed - parse data-descriptor from it and init model
-		else if (typeof obj === "string"){
-			return new Expression(obj, {context: context});
+		else if (typeof src === "string"){
+			return new Expression(src, this.context);
 		}
 
 		//if simple object is passed - make a list from it
-		else if (obj instanceof Object){
-			return this.recognizeDescriptor(obj, context);
+		else if (src instanceof Object){
+			return this.recognizeObject(src);
 		}
 
 		//otherwise do not create itseld, cause it is the same as plain value
 		else {
-			return obj
+			return src
 		}
 	},
-
-	/*
-	* If descriptor is of format ['{{ repeat }}'?, ...]
-	*/
-	recognizeList: function(listDescriptor, context){
-		this.context = extend(this.context, context, 
-
-		//change model and repeat subjects of parent list context
-		{
-			lastIndex: undefined,
-			repeatSubjects: [],
-			model: this.model
-		});
-
-		//match if first item is `{{ repeat }}` statement
-		//define repeat expression and subjects properly
-		var repeatMatch, restArgs, repeatStr;
-		if (typeof listDescriptor[0] === 'string' && (/\{\{[ ]*repeat[ \(\),0-9]*\}\}/.test(listDescriptor[0]))){
-			repeatStr = listDescriptor[0];
-			restArgs = listDescriptor.slice(1);
-		} else {
-			repeatStr = '{{ repeat }}';
-			restArgs = listDescriptor
-		}
-
-		//recognize repeating subjects as data-desctiptors, in order to populate them multiple times
-		for (var i = 0; i < restArgs.length; i++){
-			this.context.repeatSubjects.push(this.recognize(restArgs[i], this.context))
-		}
-
-		//console.log("list", this.context.repeatSubjects)
-
-		//set context for expression
-		var repeatEx = new Expression(repeatStr, {
-			context: this.context
-		});
-
-		return repeatEx;
-	},
-
 
 	/*
 	* If descriptor of format {obj}
 	*/
-	recognizeDescriptor: function(descriptor, context){
+	recognizeObject: function(descriptor){
 		if (!descriptor) return descriptor;
 
 		var result = {};
-		var ctx = extend({}, context)
-		delete ctx.repeat;
 
 		//Go by keys, handle each properly
 		for (var key in descriptor){
-			if (typeof descriptor[key] === "string"){
-				result[key] = new Expression(descriptor[key], {context:ctx})
-			} else if (descriptor[key] instanceof Array){
-				result[key] = this.recognizeList(descriptor[key], context)
-			} else if (descriptor[key] instanceof Object) {
-				result[key] = this.recognizeDescriptor(descriptor[key], context);
-			} else if (typeof descriptor[key] === "function") {
-				result[key] = descriptor[key];
-			} else {
-				result[key] = descriptor[key];
-			}
+			result[key] = this.recognize(descriptor[key])
 		}
 
 		return result;
 	},
 
-
-
 	/*
-	* Populate self
+	*	Known data-types populators
 	*/
-	populate: function(model){
-		if (arguments.length === 0) {
-			model = this.model
+	populate: function(model){ //TODO: if undefined passed deliberately
+
+		var result = undefined;
+
+		if (arguments.length == 0){
+			var model = this.model;
+		} else {
+			var model = model;
 		}
-		console.log("populate", model)
+		//console.group("populate datadesc", model)
+
 
 		if (model instanceof Expression){
-			return model.populate();
-		} else if (model instanceof Array){
-			var result = [];
-			for (var i = 0; i < model.length; i++){
-				result.push(this.populate(model[i]))
-			}
-			return result
+			result = model.populate();
+		} else if (model instanceof DataDescriptor){
+			result = model.populate();
+		} else if (model instanceof RepeatExpression){
+			result = model.populate();
 		} else if (model instanceof Object){
-			var result = {}
-			//console.group("obj populate")
-			for (var key in model){
-				result[key] = this.populate(model[key]);
+			if (this.stop >= 19){
+				console.error("Too big depth of population. Reassert your DataDescriptor")
+				return undefined;
 			}
-			//console.groupEnd
-			return result;
+			result = this.populateObject(model);
 		} else {
-			return model;
+			result = model;
 		}
+		//console.log("pop result", result)
+		//console.groupEnd();
+
+		return result
+	},
+	populateObject: function(obj){
+		var result = {};
+		this.stop += 1;
+		for (var key in obj){
+			//console.group("populate object key: `" + key+ "`", obj[key], "result:", result)
+			//result[key] = obj[key]
+			result[key] = this.populate(obj[key]);
+			//console.log("populated obj key `" + key + "` result:", result)
+			//console.groupEnd();
+		}
+		//console.log("popobj result", result)
+		return result
 	}
 }

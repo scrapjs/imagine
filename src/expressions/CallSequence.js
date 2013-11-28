@@ -6,7 +6,7 @@
 function CallSequence(str, context){
 	if (!str) return undefined;
 
-	//console.group("callsequence", str, context)
+	//console.group("callsequence", str)
 
 	this.context = context || extend({}, I);
 
@@ -71,7 +71,9 @@ CallSequence.prototype = {
 	* Invokes sequence
 	*/
 	makeCall: function(){
-		console.log("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", this.context && this.context.lastIndex)
+		//console.log("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", this.context && this.context)
+
+		if (this.chunkTarget === undefined) return undefined;
 
 		if (typeof this.chunkTarget === "function"){
 			var tmpValue = this.chunkTarget.apply(this.context, this.getArgumentsData(this.chunkArguments[0]));

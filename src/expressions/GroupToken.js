@@ -6,8 +6,12 @@ function GroupToken(){
 }
 extend(GroupToken.prototype, Token.prototype, {
 	parse: function(str){
+		//console.log("Group token", str)
+
 		//init vars
 		this.alternatives = [];
+
+		this.groupString = str;
 
 		this.groupType = str.match(/(\(\?\:|\(|)/)[1];
 		str = str.slice(this.groupType.length, this.groupType ? -1 : str.length);
