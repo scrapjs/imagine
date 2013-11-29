@@ -9,7 +9,7 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
 	
-	<script src="../src/util.js"></script>
+	<!--<script src="../src/util.js"></script>
 	<script src="../src/filters.js"></script>
 	<script src="../src/primitives.js"></script>
 	<script src="../src/expressions/CallSequence.js"></script>
@@ -21,9 +21,11 @@
 	<script src="../src/expressions/StringToken.js"></script>
 	<script src="../src/expressions/DataToken.js"></script>
 	<script src="../src/expressions/AnyToken.js"></script>
-	<script src="../src/Improvise.js"></script>
 	<script src="../src/expressions/RepeatExpression.js"></script>
 	<script src="../src/DataDescriptor.js"></script>
+	<script src="../src/Imagine.js"></script>-->
+	
+	<script src="../imagine.js"></script>
 
 	<script src="../data/Internet.js"></script>
 
@@ -31,44 +33,44 @@
 
 	<script type="text/javascript">
 		test("escape, unescape", function(){
-			ok(fixed("123", 5) === "00123", "fixed test")
+			ok(imagine.fixed("123", 5) === "00123", "fixed test")
 
-			ok(escapeSymbols("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
-			ok(escapeSymbols("\\", "\\") === "\\\\", "escape \\");
-			ok(escapeSymbols("123\\456", "\\") === "123\\\\456", "escape \\ 2");
+			ok(imagine.escapeSymbols("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
+			ok(imagine.escapeSymbols("\\", "\\") === "\\\\", "escape \\");
+			ok(imagine.escapeSymbols("123\\456", "\\") === "123\\\\456", "escape \\ 2");
 
-			ok(unescapeSymbols("\\", "\\") === "\\", "unescape \\")
-			ok(unescapeSymbols("\\\\", "\\") === "\\", "unescape \\\\")
-			ok(unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
-			ok(unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
+			ok(imagine.unescapeSymbols("\\", "\\") === "\\", "unescape \\")
+			ok(imagine.unescapeSymbols("\\\\", "\\") === "\\", "unescape \\\\")
+			ok(imagine.unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
+			ok(imagine.unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
 
-			ok(escapeWithin("123{4}567", "{}") === "123{4}567", "hooked up native escape")
-			ok(escapeWithin("{4}", "{}") === "{4}", "native 2")
-			ok(escapeWithin("{}", "{}") === "{}", "native 3");
-			ok(escapeWithin("a{}b", "{}") === "a{}b", "native 4"); 
-			ok(escapeWithin("a{}b{}c{}d{e}f", "{}") === "a{}b{}c{}d{e}f", "native 5")
-			ok(escapeWithin("{}{}", "{}") === "{}{}", "native 6")
-			ok(escapeWithin("{{}}", "{}") === "{%7B%7D}", "native 7")
-			ok(escapeWithin("a(b(c(de{}f[]g()h())))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29)", "complicated escape")
+			ok(imagine.escapeWithin("123{4}567", "{}") === "123{4}567", "hooked up native escape")
+			ok(imagine.escapeWithin("{4}", "{}") === "{4}", "native 2")
+			ok(imagine.escapeWithin("{}", "{}") === "{}", "native 3");
+			ok(imagine.escapeWithin("a{}b", "{}") === "a{}b", "native 4"); 
+			ok(imagine.escapeWithin("a{}b{}c{}d{e}f", "{}") === "a{}b{}c{}d{e}f", "native 5")
+			ok(imagine.escapeWithin("{}{}", "{}") === "{}{}", "native 6")
+			ok(imagine.escapeWithin("{{}}", "{}") === "{%7B%7D}", "native 7")
+			ok(imagine.escapeWithin("a(b(c(de{}f[]g()h())))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29)", "complicated escape")
 
-			ok(escapeWithin("a{{ bc{} de{{d}}}}", ["{{", "}}"]) === "a{{%20bc%7B%7D%20de%7B%7Bd%7D%7D}}", "Long escapers")
+			ok(imagine.escapeWithin("a{{ bc{} de{{d}}}}", ["{{", "}}"]) === "a{{%20bc%7B%7D%20de%7B%7Bd%7D%7D}}", "Long escapers")
 
 			var src = "a(b( c$( de{ $ }f[ ' 67#' ]g()h())))";
-			ok(unescapeWithin(escapeWithin(src, "()", "''", "{}"), "()", "{}", "''") === src, "reversivity of escaping")
+			ok(imagine.unescapeWithin(imagine.escapeWithin(src, "()", "''", "{}"), "()", "{}", "''") === src, "reversivity of escaping")
 
-			ok(escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
-			ok(escapeWithin("[abc(def,'g ')], 'hi$jk'", "''", "()") === "[abc(def%2C%27g%20%27)], 'hi%24jk'", "Multiple escaping")
+			ok(imagine.escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
+			ok(imagine.escapeWithin("[abc(def,'g ')], 'hi$jk'", "''", "()") === "[abc(def%2C%27g%20%27)], 'hi%24jk'", "Multiple escaping")
 
 		})
 
 		test("tech stuff", function(){
-			deepEqual(parseArguments("'}}}}{{{{', '{{{{}}}}'"), ['}}}}{{{{', '{{{{}}}}'], "args parsing list")
+			deepEqual(imagine.parseArguments("'}}}}{{{{', '{{{{}}}}'"), ['}}}}{{{{', '{{{{}}}}'], "args parsing list")
 		})
 
 		test( "number, float, int, bool", function() {
 			var isOk = [false, false, false];
 			for (var i = 0; i < 30; i++){
-				var c = Math.round(improvise.number(-1.2, 1.2));
+				var c = Math.round(imagine.number(-1.2, 1.2));
 				if (c === 1){
 					isOk[2] = true;
 				}
@@ -80,32 +82,32 @@
 				}
 			}
 			ok( isOk[0] && isOk[1] && isOk[2], "distribution");
-			ok(improvise.number(12) <= 12, "maximal int");
-			ok (Math.max(improvise.number(12), improvise.number(12), improvise.number(12) ) > 3, "minimal int");
-			ok ([0,1,2,3,4].indexOf(improvise.int(4)) >= 0, "int rounding");
-			ok ([1,2,3,4].indexOf(improvise.float(4)) < 0, "float not rounding");
-			ok ([2,3,4,5].indexOf(improvise.int(2,5)) >= 0, "int range");
-			ok (improvise.float(2,4) > 2 && improvise.float(2,4) < 4, "float range");
-			ok (improvise.int(-2, -2) === -2, "int exactness");
+			ok(imagine.number(12) <= 12, "maximal int");
+			ok (Math.max(imagine.number(12), imagine.number(12), imagine.number(12) ) > 3, "minimal int");
+			ok ([0,1,2,3,4].indexOf(imagine.int(4)) >= 0, "int rounding");
+			ok ([1,2,3,4].indexOf(imagine.float(4)) < 0, "float not rounding");
+			ok ([2,3,4,5].indexOf(imagine.int(2,5)) >= 0, "int range");
+			ok (imagine.float(2,4) > 2 && imagine.float(2,4) < 4, "float range");
+			ok (imagine.int(-2, -2) === -2, "int exactness");
 		});
 
 		test( "any", function(){
 			var arr = [1,2,3,4,5];
 			isOk = [];
 			for (var i = 0; i < 40; i++){
-				var c = improvise.any(arr);
+				var c = imagine.any(arr);
 				var idx = arr.indexOf(c);
 				if (idx >= 0) isOk[idx] = true;
 			}
 			ok(isOk.length === 5);
 
-			ok(any() === undefined, "empty");
+			ok(imagine.any() === undefined, "empty");
 
-			ok(any(123) === 123, "number passed");
+			ok(imagine.any(123) === 123, "number passed");
 
-			ok([1,2,3].indexOf(any(1, 2, 3)) >= 0, "sequence of arguments");
+			ok([1,2,3].indexOf(imagine.any(1, 2, 3)) >= 0, "sequence of arguments");
 
-			ok(any([]) === undefined, "empty array passed");
+			ok(imagine.any([]) === undefined, "empty array passed");
 		});
 
 		test( "replacements", function(){
@@ -115,7 +117,7 @@
 				'n': '0123456789',
 				'?': 'abcdefghijklmnopqrstuvwxyz'
 			};
-			var res = improvise.replacements(str, replacements);
+			var res = imagine.replacements(str, replacements);
 			ok (replacements['N'].indexOf(res[0]) >= 0 &&
 				replacements['n'].indexOf(res[1]) >= 0 &&
 				replacements['?'].indexOf(res[2]) >= 0 &&
@@ -125,39 +127,39 @@
 
 		test( "sanitize", function(){
 			var testHTML = "<html>start\n<script>123<\/script\><object\/\>\nend<\/html\>";
-			ok ( improvise.sanitize(testHTML) == "<html>start\n\nend</html>" );
+			ok ( imagine.sanitize(testHTML) == "<html>start\n\nend</html>" );
 		});
 
 		test("expression parsing", function(){
 
-			ok(improvise.expression("(a)3") === 'a3', "Group escaping: number after group")
-			ok(improvise.expression('%5%(%6%a%7%)%8%') === '%5%%6%a%7%%8%', "Group escaping: extra percents")
-			ok(improvise.expression('%5(a)') === "%5a", "Group escaping: odd percents number")
+			ok(imagine.expression("(a)3") === 'a3', "Group escaping: number after group")
+			ok(imagine.expression('%5%(%6%a%7%)%8%') === '%5%%6%a%7%%8%', "Group escaping: extra percents")
+			ok(imagine.expression('%5(a)') === "%5a", "Group escaping: odd percents number")
 
 			//<5>(<6>a<7>)<8>
 			var initialStr = [
-					I.refBrackets[0], 5,
-					I.refBrackets[1], '(',
-					I.refBrackets[0], 6,
-					I.refBrackets[1], 'a',
-					I.refBrackets[0], 7,
-					I.refBrackets[1], ')',
-					I.refBrackets[0], 8,
-					I.refBrackets[1]
+					imagine.refBrackets[0], 5,
+					imagine.refBrackets[1], '(',
+					imagine.refBrackets[0], 6,
+					imagine.refBrackets[1], 'a',
+					imagine.refBrackets[0], 7,
+					imagine.refBrackets[1], ')',
+					imagine.refBrackets[0], 8,
+					imagine.refBrackets[1]
 				].join('')
 			var resultingStr = initialStr.replace(/[\(\)]/g, '');
 
-			ok(improvise.expression(initialStr) === resultingStr, "GroupRef escaping: " + initialStr + " populate→ " + resultingStr)
-			ok(new Expression(initialStr).toString() === initialStr, "GroupRef escaping: " + initialStr + " toString→ " + new Expression(initialStr).toString())
+			ok(imagine.expression(initialStr) === resultingStr, "GroupRef escaping: " + initialStr + " populate→ " + resultingStr)
+			ok(new imagine.Expression(initialStr).toString() === initialStr, "GroupRef escaping: " + initialStr + " toString→ " + new imagine.Expression(initialStr).toString())
 
-			ok(new Expression('a(b)c').toString() === "a(b)c", "One symbol parsing: " + "a(b)c →" + new Expression('a(b)c').toString())
+			ok(new imagine.Expression('a(b)c').toString() === "a(b)c", "One symbol parsing: " + "a(b)c →" + new imagine.Expression('a(b)c').toString())
 
-			ok(new Expression('{{ index(1) }}').tokens.length == 2, "Catch zero token double write")
+			ok(new imagine.Expression('{{ index(1) }}').tokens.length == 2, "Catch zero token double write")
 		})
 	
 		test("expression correctness", function(){
 			var str = "ab{0,2}c(?:de?f|(hj{1}k|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0,2}(y){{z}}\\2{,1}\\1(abc\\td%4ef\\*\\x123)+z?"
-			var expr = new Expression(str, {context: {o: 1, z: 2}});
+			var expr = new imagine.Expression(str, {o: 1, z: 2});
 
 			ok (expr.toString().indexOf("") < 0, "Bad symbols handling")
 
@@ -167,7 +169,7 @@
 
 		test("expression trivial populate", function(){
 			var str = "(?:(greg).(semenov)|\\2.\\1)@(gmail|yahoo).com"
-			var expr = new Expression(str);
+			var expr = new imagine.Expression(str);
 
 			var result = expr.populate();
 
@@ -176,13 +178,13 @@
 
 
 		test("handle real regexps", function(){
-			ok (expression(/abc/) === "abc")
+			ok (imagine.expression(/abc/) === "abc")
 		});
 
 		test("forward and backward expressions compatibility", function(){
 			//TODO: test matching of result by the same regex as expression is
 			var regex = new RegExp("a[bc](def)g");
-			var result = expression(regex);
+			var result = imagine.expression(regex);
 			var match = result.match(regex);
 
 			ok(match[1] === "def", "Simple groups matching test")
@@ -191,44 +193,44 @@
 
 		test("expression AnyToken", function(){
 			var testStr = "[ab0-9cde-gа-г]";
-			ok("ab0123456789cdefgабвг".indexOf(expression(testStr)) >= 0)
+			ok("ab0123456789cdefgабвг".indexOf(imagine.expression(testStr)) >= 0)
 
 			testStr = "[-]"
-			ok(expression(testStr) === "-")
+			ok(imagine.expression(testStr) === "-")
 
 			testStr = "[a-]"
-			ok("a-".indexOf(expression(testStr)) >= 0)
+			ok("a-".indexOf(imagine.expression(testStr)) >= 0)
 
 			testStr = "[-u]"
-			ok("u-".indexOf(expression(testStr)) >= 0)
+			ok("u-".indexOf(imagine.expression(testStr)) >= 0)
 
 			testStr = "[---]"
-			ok(expression(testStr) === "-")
+			ok(imagine.expression(testStr) === "-")
 
 			testStr = "[a-c-f]"
-			ok("abc-f".indexOf(expression(testStr)) >= 0)
+			ok("abc-f".indexOf(imagine.expression(testStr)) >= 0)
 		})
 
 
 		test("expression DataToken", function(){
-			ok(expression("{{ int(0) }}") == 0, "Trivial int(0) check")
+			ok(imagine.expression("{{ int(0) }}") == 0, "Trivial int(0) check")
 
-			deepEqual(expression("{{ none({a: { b: 234 }}) }}"), {a: {b: 234}}, "Correctness of nested JSON like {a: {b: }}")
-			ok(expression("{{ none('}}}}{{{{', '{{{{}}}}', {a:{}}) }}") === "}}}}{{{{", "Correction of nested vicissitudes")
+			deepEqual(imagine.expression("{{ none({a: { b: 234 }}) }}"), {a: {b: 234}}, "Correctness of nested JSON like {a: {b: }}")
+			ok(imagine.expression("{{ none('}}}}{{{{', '{{{{}}}}', {a:{}}) }}") === "}}}}{{{{", "Correction of nested vicissitudes")
 
 
-			ok(expression("{{ 'abc' }}") === 'abc', "Primitives: strings")
-			ok(expression("{{ -123.456 }}") === -123.456, "Primitives: numbers")
-			ok((expression("{{ true }}") === true && expression("{{ false }}") === false), "Primitives: bool")
+			ok(imagine.expression("{{ 'abc' }}") === 'abc', "Primitives: strings")
+			ok(imagine.expression("{{ -123.456 }}") === -123.456, "Primitives: numbers")
+			ok((imagine.expression("{{ true }}") === true && imagine.expression("{{ false }}") === false), "Primitives: bool")
 
-			deepEqual(expression("{{ [1,{a: {b : 2}},true,,[],'4', [5,6,{}]] }}"), [1, {a: {b :2}}, true, undefined,[], '4',[5, 6, {}]] , "Primitives: lists")
+			deepEqual(imagine.expression("{{ [1,{a: {b : 2}},true,,[],'4', [5,6,{}]] }}"), [1, {a: {b :2}}, true, undefined,[], '4',[5, 6, {}]] , "Primitives: lists")
 
-			ok(expression("{{ 'abcdef'|capitalize|truncatechars(5, '>>>') }}") === "Abcde>>>", "Piping");
+			ok(imagine.expression("{{ 'abcdef'|capitalize|truncatechars(5, '>>>') }}") === "Abcde>>>", "Piping");
 
 			//TODO: check data types
-			//ok(expression("{{ Person }}"), "Data types")
+			//ok(imagine.expression("{{ Person }}"), "Data types")
 
-			ok(expression("{{ a( b({ c: d()}), [ e([ 1, {f: 2} ]), g] )['h'].i[' j'].['k'].l(m)|n|o(p,{q:r})|s }}", {a: function(){return {h: {i: {' j': {k:{ l:I.none}}}}}}, b: I.none, d: I.none, e: I.none, h: I.none, g: 12, p: 1, m:"abc", r: null}) === "abc", "Sophisticated source")
+			ok(imagine.expression("{{ a( b({ c: d()}), [ e([ 1, {f: 2} ]), g] )['h'].i[' j'].['k'].l(m)|n|o(p,{q:r})|s }}", {a: function(){return {h: {i: {' j': {k:{ l:imagine.none}}}}}}, b: imagine.none, d: imagine.none, e: imagine.none, h: imagine.none, g: 12, p: 1, m:"abc", r: null}) === "abc", "Sophisticated source")
 		});
 
 
@@ -236,52 +238,80 @@
 
 			//repeating & index tests
 			//ok(repeat(1,3,true) === undefined, "Repeat basis")
-			deepEqual(populate([1,2,3]), [1,2,3], "repeat straightaway call")
+			deepEqual(imagine.populate([1,2,3]), [1,2,3], "repeat straightaway call")
 
-			deepEqual(populate(["{{ repeat(3) }}", '{{ index(12) }}']), [12,13,14], "trivial repeat")
+			deepEqual(imagine.populate(["{{ repeat(3) }}", '{{ index(12) }}']), [12,13,14], "trivial repeat")
 
-			deepEqual(populate(['{{ index(22) }}']), [22], "index only")
+			deepEqual(imagine.populate(['{{ index(22) }}']), [22], "index only")
 
-			equal(populate('{{ index(23) }}'), undefined, "ignoring index")
+			equal(imagine.populate('{{ index(23) }}'), 23, "ignoring index")
 
-			equal(populate('{{ repeat(3) }}'), undefined, "ignoring repeat")
+			equal(imagine.populate('{{ repeat(3) }}'), undefined, "ignoring repeat")
 
-			deepEqual(populate(['{{ repeat(3) }}']), [,,,], "repeat with no subjects")
+			deepEqual(imagine.populate(['{{ repeat(3) }}']), [,,,], "repeat with no subjects")
 
-			//deepEqual(populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}])
+			//deepEqual(imagine.populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}])
 
-			deepEqual(populate([{r:undefined }]), [{r: undefined}], "undefines 1")
-			deepEqual(populate({r:undefined }), {r: undefined}, "undefines 2")
+			deepEqual(imagine.populate([{r:undefined }]), [{r: undefined}], "undefines 1")
+			deepEqual(imagine.populate({r:undefined }), {r: undefined}, "undefines 2")
 
-			deepEqual(populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}], "nested repeat")
-			deepEqual(populate({id: '{{ index(32) }}', r: '{{ repeat(3) }}'}), {id: undefined, r: undefined}, "plain index & repeat")
+			deepEqual(imagine.populate([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}], "nested repeat")
+			deepEqual(imagine.populate({id: '{{ index(32) }}', r: '{{ repeat(3) }}'}), {id: 32, r: undefined}, "plain index & repeat")
 
-			deepEqual(populate(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,3,4,5,6,7], "separated indexes")
+			deepEqual(imagine.populate(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,3,4,5,6,7], "separated indexes")
 
-			deepEqual(populate(['{{ repeat(3) }}', {a: '{{ index(1) }}', b:'{{ index(2) }}', c: '{{ index }}'}]), 
+			deepEqual(imagine.populate(['{{ repeat(3) }}', {a: '{{ index(1) }}', b:'{{ index(2) }}', c: '{{ index }}'}]), 
 				[{a: 1, b: 1, c: 1}, {a: 2, b:2, c: 2}, {a: 3, b: 3, c: 3} ], "indexes within objects")
 
-			deepEqual(populate([['{{ repeat(3) }}', '{{ index(2) }}'], ['{{ repeat(4) }}', '{{ index(4) }}']]), [[2,3,4], [4,5,6,7]], "indexes independence")
+			deepEqual(imagine.populate([['{{ repeat(3) }}', '{{ index(2) }}'], ['{{ repeat(4) }}', '{{ index(4) }}']]), [[2,3,4], [4,5,6,7]], "indexes independence")
 
 			//TODO: full-featured data-sources, nested evil
 		});
 
 		test("mimic json generator properties", function(){
+			
 		});
 
 
-		test("populate data descriptors", function(){
+		test("populate real data descriptors", function(){
 			//console.log(populate({ name: Person.name }))
 			//ok(populate({ name: Person.name }), {})
-			//console.log(expression(Internet.email))
+			//console.log(imagine.expression(Internet.email))
 		})
 
 		test("data-providers", function(){
-			//console.log(expression(Internet.email))
+			//console.log(imagine.expression(Internet.email))
 		})
 
 
-		test("data descriptors recognition", function(){
+		test("filters: django & swig", function(){
+			//SWIG ones
+			//lists
+			deepEqual(imagine.expression("{{ [2,3,1]|sort }}"), [1,2,3], "sort")
+			deepEqual(imagine.expression("{{ [2,3,1]|sort(true) }}"), [3,2,1], "sort reverse")
+			deepEqual(imagine.expression("{{ [2,3,1]|reverse }}"), [1,3,2], "reverse")			
+			deepEqual(imagine.expression("{{ [2,3,1]|first }}"), 2, "first")
+			deepEqual(imagine.expression("{{ [2,3,1]|first }}"), 1, "last")
+			deepEqual(imagine.expression("{{ [2,'3',1]|join(', ') }}"), "2, 3, 1", "join")
+
+			//strings
+			deepEqual(imagine.expression(/{{ 'abcd eF'|capitalize }}/), "Abcd ef", "capitalize")
+			deepEqual(imagine.expression(/{{ 'abcd eF'|title }}/), "Abcd Ef", "title")
+			deepEqual(imagine.expression(/{{ 'abcd <eF>'|escape('js') }}/), "Abcd \\u003ef\\u003E", "escape js")
+			deepEqual(imagine.expression(/{{ 'abcd <eF>'|escape('html') }}/), "Abcd ef", "escape html")
+
+			//other
+			deepEqual(imagine.expression("{{ ''|default(123) }}"), 123, "default string")
+			deepEqual(imagine.expression("{{ undefined|default(123) }}"), 123, "default undefined")
+			deepEqual(imagine.expression("{{ null|default(123) }}"), 123, "default null")
+			deepEqual(imagine.expression("{{ false|default(123) }}"), 123, "default false")
+			deepEqual(imagine.expression("{{ 0|default(123) }}"), 123, "default zero")
+			deepEqual(imagine.expression("{{ |default(123) }}"), 123, "default none")
+			deepEqual(imagine.expression("{{ |default('x') }}"), 'x', "default none")
+		})
+
+		test("formatter (TODO: format the way typographer does)", function(){
+			equal(imagine.expression("{{ 'some'|format }}"), "some with no mistakes", "format simple")
 		})
 
 	</script>

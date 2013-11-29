@@ -8,7 +8,7 @@ function Token(){
 	this._constructor.apply(this, arguments)
 }
 
-extend(Token.prototype, {
+Token.prototype = {
 	/*
 		@str - string to parse
 		@multiplier - how many times to repeat
@@ -118,4 +118,4 @@ extend(Token.prototype, {
 		}
 	},
 
-})
+}

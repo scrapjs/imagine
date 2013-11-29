@@ -1,21 +1,17 @@
 (function(){
 	//#include ../src/util.js
-
-	//----- General data providers
-	//#include ../data/Internet.js
-
-	//----- General data types
-	//#include ../data/Thing.js
-
-
-
-	//#ifndef locale
-	//#define locale = "EN_us"
-	//#endif
-	//----- Locale-specific data types
-
-
-	//----- Locale-specific providers
-	//#include ../data//*#put locale *//Thing.js
-
+	//#include ../src/filters.js
+	//#include ../src/primitives.js
+	//#include ../src/expressions/CallSequence.js
+	//#include ../src/expressions/Filter.js
+	//#include ../src/expressions/Expression.js
+	//#include ../src/expressions/Token.js
+	//#include ../src/expressions/GroupToken.js
+	//#include ../src/expressions/GroupRefToken.js
+	//#include ../src/expressions/StringToken.js
+	//#include ../src/expressions/DataToken.js
+	//#include ../src/expressions/AnyToken.js
+	//#include ../src/expressions/RepeatExpression.js
+	//#include ../src/DataDescriptor.js
+	//#include ../src/Imagine.js
 })();

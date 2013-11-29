@@ -4,7 +4,8 @@
 var refBrackets = ["⦅", "⦆"], //["<", ">"]
 	escaper = "\\",
 	unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs",
-	stringRE = /(?:'[^']*'|"[^"]*")/g
+	stringRE = /(?:'[^']*'|"[^"]*")/g,
+	dataDelimiter = ["{{", "}}"] //delimiters to split data-chunks from string
 
 /*
 	class extender tool
@@ -85,6 +86,13 @@ function populate(obj){
 	return dd.populate();
 }
 
+//RepeatSequence stubs
+function index(num){
+	return num;
+}
+function repeat(){
+	return undefined
+}
 
 
 /*

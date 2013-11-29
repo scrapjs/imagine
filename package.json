@@ -1,13 +1,13 @@
 {
-	"name": "improvise",
+	"name": "imagine",
 	"version": "0.0.1",
-	"description": "Fills django-templates with fake data",
-	"homepage": "http://github.com/dfcreative/improvise.js",
-	"keywords": ["faker", "data", "content"],
+	"description": "Generate random schema.org-based data, populate RegExps, swig/django-like template system, sentences generator and more",
+	"homepage": "http://github.com/dfcreative/imagine.js",
+	"keywords": ["faker", "data", "content", "generator"],
 	"author": {
 		"name": "Dmitry",
 		"email": "df.creative@gmail.com",
-		"url": "http://dfcreative.github.com/project/improvise-js/"
+		"url": "http://dfcreative.github.com/project/imagine-js/"
 	},
 	"licenses": [{
 		"type":"MIT",
@@ -15,21 +15,27 @@
 	}],
 	"repository": {
 		"type": "git",
-		"url": "http://github.com/dfcreative/improvise.js.git",
-		"web": "http://github.com/dfcreative/improvise.js"
+		"url": "http://github.com/dfcreative/imagine.js.git",
+		"web": "http://github.com/dfcreative/imagine.js"
 	},
-	"dependencies": {
+
+
+	"main": "Gruntfile.js",
+	"scripts": {
+		"test": "grunt test"
 	},
 	"devDependencies": {
 		"grunt": "~0.4.1",
-	    "grunt-contrib-jshint": "~0.1.1",
-	    "grunt-contrib-nodeunit": "~0.1.2"
+		"grunt-contrib-jshint": "~0.6.4",
+		"grunt-contrib-qunit": "~0.2.2",
+		"grunt-contrib-concat": "~0.2.0",
+		"grunt-contrib-uglify": "~0.2.4",
+		"grunt-closure-compiler": ">0.0.20",
+		"grunt-homemade": "~0.2.2"
 	},
-	"main": "improvise",
-	"engines": [ "node >= 0.4"],
+	"peerDependencies": {
+		"grunt": "~0.4.1"
+	},
 
-	"scripts": {
-		"test": "node-unit"
-	}
-
+	"engines": [ "node >= 0.4"]
 }

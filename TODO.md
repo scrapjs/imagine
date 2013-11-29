@@ -17,3 +17,5 @@
 
 * TODO: save specificity of generated data type and get access to any property written
 E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") }}
+
+* separated Filter packs: swig, django, formatter etc

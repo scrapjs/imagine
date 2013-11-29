@@ -4,7 +4,7 @@
 //#ifdef projectName
 	//# put 'var projectName = "' + projectName + '";'
 //#else
-	var projectName = "improvise";
+	var projectName = "imagine";
 //#endif
 
 
@@ -19,7 +19,6 @@ window[projectName] = I;
 *	Init improviser settings
 */
 I.o = {
-	dataDelimiter: ["{{", "}}"], //delimiters to split data-chunks from string
 	locale: 'en_EN', //default locale to rely on
 	badTags: 'applet base basefont frame frameset head isindex link meta noframes noscript object param script style title'.split( ' ' ),
 };
@@ -32,9 +31,15 @@ if (window[projectName]){
 *	External methods & default context
 */
 extend(I, {
-	//# if DEV
 	refBrackets: refBrackets, 
-	//# endif
+
+	//utils
+	extend: extend,
+	escapeWithin: escapeWithin,
+	unescapeWithin: unescapeWithin,
+	escapeSymbols: escapeSymbols,
+	unescapeSymbols: unescapeSymbols,
+	parseArguments: parseArguments,
 
 	//API
 	any: any,
@@ -49,5 +54,20 @@ extend(I, {
 	populate: populate,
 
 	//Set of filters
-	filters: filters
+	fixed: fixed,
+
+	index: index,
+	repeat: repeat,
+
+	//utils
+	extend: extend,
+	escapeWithin: escapeWithin,
+	unescapeWithin: unescapeWithin,
+	escapeSymbols: escapeSymbols,
+	unescapeSymbols: unescapeSymbols,
+
+	//Classes
+	Expression: Expression,
+	DataDescriptor: DataDescriptor
+
 });

@@ -40,9 +40,9 @@ function DataDescriptor(src, context){
 
 DataDescriptor.prototype = {
 	dataRegExp: new RegExp([
-		I.o.dataDelimiter[0],
-		"[ ]*([a-zA-Z_$@][a-zA-Z_$@.0-9]*)[^", I.o.dataDelimiter[0], I.o.dataDelimiter[1], "]*",
-		I.o.dataDelimiter[1]
+		dataDelimiter[0],
+		"[ ]*([a-zA-Z_$@][a-zA-Z_$@.0-9]*)[^", dataDelimiter[0], dataDelimiter[1], "]*",
+		dataDelimiter[1]
 	].join(''), "ig"),
 
 	/*

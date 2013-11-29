@@ -38,7 +38,7 @@ function RepeatExpression(arr, context){
 	//console.log("repeatex", this.context)
 }
 
-extend(RepeatExpression.prototype,{
+RepeatExpression.prototype = {
 
 	/*
 	* To use from within RepeatExpression lists comprehensions
@@ -117,4 +117,4 @@ extend(RepeatExpression.prototype,{
 	populate: function(){
 		return this.repeatEx.populate();
 	}	
-})
+}
