@@ -1,11 +1,13 @@
-/*
-	[abc] token
+/**
+* [abc] token
+* @constructor
+* @extends Token
 */
-//TODO: optimize sequences. Now you can write something like a-я (a is english), and it will raise huge list
-//TODO: make reserved things like alnum
 function AnyToken(){
 	this._constructor.apply(this, arguments)
 }
+//TODO: optimize sequences. Now you can write something like a-я (a is english), and it will raise huge list
+//TODO: make reserved things like alnum
 extend(AnyToken.prototype, Token.prototype, {
 	parse: function(str){
 

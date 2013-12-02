@@ -1,7 +1,9 @@
-/*
+/**
 * Special object to supply callable primitive. May consist of other call sequences.
 * E.g. `.some['property']('to', ['call'], { with: 'params'})[1][2].[3]`
 * It will make all necessary calls to obtain the most recent result
+*
+* @constructor
 */
 function CallSequence(str, context){
 	if (!str) return undefined;
@@ -28,7 +30,7 @@ function CallSequence(str, context){
 
 	if (!match) {
 		throw new Error("Cannot match initial call sequence chunk `" + str + "`")
-		return null;
+		//return null;
 	}
 
 	this.chunkNames.push(unescape(match[1]));
@@ -85,8 +87,8 @@ CallSequence.prototype = {
 		//Go by chunks
 		for (var i = 1; i < this.chunkNames.length; i++){
 			if (typeof tmpValue[this.chunkNames[i]] === "function"){
-				var arguments = this.getArgumentsData(this.chunkArguments[i]);
-				tmpValue = tmpValue[this.chunkNames[i]].apply(this.context, arguments);
+				var args = this.getArgumentsData(this.chunkArguments[i]);
+				tmpValue = tmpValue[this.chunkNames[i]].apply(this.context, args);
 			} else {
 				tmpValue = tmpValue[this.chunkNames[i]]
 			}

@@ -1,6 +1,8 @@
-/*
+/**
 *	Expression represents specific structure to generate.
 *	Provides context for tokens.
+*	@constructor
+*	@expose
 */
 function Expression(str, context){
 	this.tokens = [];//dict of tokens
@@ -136,9 +138,9 @@ Expression.prototype = {
 		}
 	},
 
-
-	/*
-		Gets generated instance based on this expression
+	/**
+	*	Gets generated instance based on this expression
+	* @expose
 	*/
 	populate: function(){
 		//console.group("populate expression:", this)
@@ -152,7 +154,7 @@ Expression.prototype = {
 	},
 
 	/*
-		Returns rendered string, representing initial expression string, optimized if it is possible
+	*	Returns rendered string, representing initial expression string, optimized if it is possible
 	*/
 	toString: function(){
 		return this.tokens[0].toString()

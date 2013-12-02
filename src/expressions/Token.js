@@ -1,8 +1,9 @@
-/*
+/**
 *	Token abstract class
 *	Represents basic token behaviour:
 *	- alternatives
 *	- multiplier of token
+* @constructor
 */
 function Token(){
 	this._constructor.apply(this, arguments)

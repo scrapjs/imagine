@@ -1,4 +1,7 @@
-//Wrapper over expression no comprehend things like ["{{ repeat }}", ...things]
+/**
+* Wrapper over expression no comprehend things like ["{{ repeat }}", ...things]
+* @constructor
+*/
 function RepeatExpression(arr, context){
 
 	this.context = {

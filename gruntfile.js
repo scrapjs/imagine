@@ -32,7 +32,8 @@ module.exports = function(grunt) {
 				jsOutputFile: '<%= pkg.name %>.min.js',
 				maxBuffer: 800,
 				options: {
-					compilation_level: 'ADVANCED_OPTIMIZATIONS',
+					//compilation_level: 'ADVANCED_OPTIMIZATIONS',
+					compilation_level: 'SIMPLE_OPTIMIZATIONS',
 					language_in: 'ECMASCRIPT5_STRICT',
 					formatting: 'pretty_print'
 				}
@@ -48,6 +49,6 @@ module.exports = function(grunt) {
 
 	//register tasks
 	grunt.registerTask('test', ['jshint', 'qunit']);
-	grunt.registerTask('default', ['jshint', 'homemade','closure-compiler', 'qunit']);
+	grunt.registerTask('default', ['homemade','closure-compiler']);
 
 };

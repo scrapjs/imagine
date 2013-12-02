@@ -1,5 +1,7 @@
-/*
-	{{ Data.Type }} token
+/**
+* {{ Data.Type }} token
+* @constructor
+* @extends Token
 */
 function DataToken(){
 	this._constructor.apply(this, arguments)
@@ -89,7 +91,8 @@ extend(DataToken.prototype, Token.prototype, {
 
 
 	getData: function(){
-		var src = undefined;
+		var src = undefined,
+			result;
 		//Makes initial source
 		//console.log("getdata:", this.source)
 		if (this.source instanceof CallSequence) {

@@ -1,5 +1,9 @@
 /*
-	Vars
+* Everything that has to be before any other code is inited
+*/
+
+/**
+* @const
 */
 var refBrackets = ["⦅", "⦆"], //["<", ">"]
 	escaper = "\\",
@@ -110,24 +114,30 @@ function replacements(str, replacements){
 	return str;
 }
 
-/* 
-*	Populate @string based on regex-like notation mixed with moustache data-insertions.
+/**
+*	Populate @param string based on regex-like notation mixed with moustache data-insertions.
 *	Examples:
 *	"{{ Internet.url }}{2,3}"
 *	"[a-z]{4,5}"
 *	"([1-9][0-9]?)(?:, ${1}){,2}" ⇒ "14", "5" or "2, 12, 45"
 *	""
+*	@return {Expression}
 */
 var expressions = {};
-function expression(str, params){
+
+function expression(str, ctx){
+	var expr;
+
 	//cache expression
 	if (!expressions[str]){
-		expressions[str] = new Expression(str, params);
-	} else if (params) {
-		expression[str].setParams(params);
+		expr = new Expression(str, ctx);
+		expressions[str] = expr;
+	} else {
+		expr = expressions[str];
+		if (ctx) expr.setContext(ctx);
 	}
 
-	return expressions[str].populate();
+	return expr.populate();
 }
 
 /*
@@ -361,7 +371,7 @@ function recognizeParam(str, context){
 	}
 
 	throw new Error("Can not recognize the param `" + str + "`")
-	return null;
+	//return null;
 }
 
 /*

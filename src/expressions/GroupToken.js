@@ -1,5 +1,7 @@
-/*
-	([^]*) and (?:[^]*) and [^]* token
+/**
+* ([^]*) and (?:[^]*) and [^]* token
+* @constructor
+* @extends Token
 */
 function GroupToken(){
 	this._constructor.apply(this, arguments)

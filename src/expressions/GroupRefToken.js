@@ -1,5 +1,7 @@
-/*
-	\1, \2 ... token
+/**
+* \1, \2 ... token
+* @constructor
+* @extends Token
 */
 function GroupRefToken(){
 	this._constructor.apply(this, arguments)

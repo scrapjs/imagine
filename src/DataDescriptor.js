@@ -25,7 +25,10 @@ new DataDescriptor({
 })
 */
 
-function DataDescriptor(src, context){
+/**
+* @constructor
+*/
+function DataDescriptor(src, context) {
 	//context to keep tacidly data related with populating expressions
 	this.context = context || extend({}, I, {
 		populate: this.populate

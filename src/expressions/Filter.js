@@ -1,6 +1,7 @@
-/*
+/**
 * Filter caller
 * Used to call filter with special params in runtime
+* @constructor
 */
 function Filter(str, context){
 	//console.group("filter", str)

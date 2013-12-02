@@ -1,5 +1,7 @@
-/*
-	b? or abc token
+/**
+* b? or abc token
+* @constructor
+* @extends Token
 */
 function StringToken(){
 	this._constructor.apply(this, arguments)

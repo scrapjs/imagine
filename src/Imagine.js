@@ -35,39 +35,51 @@ extend(I, {
 
 	//utils
 	extend: extend,
+	/** @expose */
 	escapeWithin: escapeWithin,
+	/** @expose */
 	unescapeWithin: unescapeWithin,
+	/** @expose */
 	escapeSymbols: escapeSymbols,
+	/** @expose */
 	unescapeSymbols: unescapeSymbols,
+	/** @expose */
 	parseArguments: parseArguments,
 
 	//API
+	/** @expose */
 	any: any,
+	/** @expose */
 	int: int,
+	/** @expose */
 	float: float,
+	/** @expose */
 	number: number,
+	/** @expose */
 	bool: bool,
+	/** @expose */
 	replacements: replacements,
+	/** @expose */
 	expression: expression,
+	/** @expose */
 	sanitize: sanitize,
+	/** @expose */
 	none: none,
+	/** @expose */
 	populate: populate,
 
 	//Set of filters
+	/** @expose */
 	fixed: fixed,
-
+	/** @expose */
 	index: index,
+	/** @expose */
 	repeat: repeat,
 
-	//utils
-	extend: extend,
-	escapeWithin: escapeWithin,
-	unescapeWithin: unescapeWithin,
-	escapeSymbols: escapeSymbols,
-	unescapeSymbols: unescapeSymbols,
-
 	//Classes
+	/** @expose */
 	Expression: Expression,
+	/** @expose */
 	DataDescriptor: DataDescriptor
 
 });
