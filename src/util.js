@@ -67,7 +67,8 @@ function none(arg){
 *	Returns reversed str
 */
 function reverse(str){
-	return str.split('').reverse().join('');
+	if (typeof str === "string") return str.split('').reverse().join('');
+	return str.reverse();
 }
 
 /*
@@ -393,19 +394,4 @@ function parseArguments(str, context){
 	}
 
 	return result;
-}
-
-
-/*
-* 'abC Dfef' → 'Abc def'
-*/
-function capitalize(str) {
-	return str.toString()[0].toUpperCase() + str.toString().slice(1).toLowerCase();
-}
-
-/*
-* 'abcdef' →(3, '...')→ 'abc...'
-*/
-function truncatechars(str, len, ending){
-	return str.slice(0, len) + (ending || "")
 }

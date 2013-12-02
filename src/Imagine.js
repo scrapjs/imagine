@@ -80,6 +80,9 @@ extend(I, {
 	/** @expose */
 	Expression: Expression,
 	/** @expose */
-	DataDescriptor: DataDescriptor
+	DataDescriptor: DataDescriptor,
+
+	/** @expose */
+	filters: filters
 
 });

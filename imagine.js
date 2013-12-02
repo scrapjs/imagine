@@ -68,7 +68,8 @@ function none(arg){
 *	Returns reversed str
 */
 function reverse(str){
-	return str.split('').reverse().join('');
+	if (typeof str === "string") return str.split('').reverse().join('');
+	return str.reverse();
 }
 
 /*
@@ -394,21 +395,6 @@ function parseArguments(str, context){
 	}
 
 	return result;
-}
-
-
-/*
-* 'abC Dfef' → 'Abc def'
-*/
-function capitalize(str) {
-	return str.toString()[0].toUpperCase() + str.toString().slice(1).toLowerCase();
-}
-
-/*
-* 'abcdef' →(3, '...')→ 'abc...'
-*/
-function truncatechars(str, len, ending){
-	return str.slice(0, len) + (ending || "")
 }
 	/**
 *	Expression represents specific structure to generate.
@@ -1223,7 +1209,12 @@ function Filter(str, context){
 	}
 
 	// Target filter function to call, like `capitalize`
-	this.fn = filters[this.name] || none;
+	this.fn = filters[this.name];
+
+	if (!this.fn){
+		console.error("no filter `" + this.name + "` found. `none` is used instead.")
+		this.fn = none;
+	}
 	//console.groupEnd();
 }
 
@@ -1541,97 +1532,114 @@ DataDescriptor.prototype = {
 		return result
 	}
 }
-	/*
+	/**
 * Set of filters to use within DataTokens
-* Highly inspired by swig filters and django-filters
+* Covers swig filters and django-filters behaviour
+* Easily extandable as Imagine.filters.filter = function(input, params){ return output}
 */
 
 var filters = {
 	capitalize: capitalize,
 	capfirst: capitalize,
 	'default': _default,
-	truncatechars: truncatechars
+	truncatechars: truncatechars,
+
+	sort: sort,
+	reverse: reverse,
+	first: first,
+	last: last,
+	uniq: uniq,
+	join: join,
+	title: titleCase,
+
+	escape: _escape,
+	e: _escape,
+
+	any: any,
+	random: any,
+
+	add: add,
+	cut: cut
+}
+
+/*
+* --------------------------- Swigs
+*/
+function _default(what, substitution){
+	if (!what){
+		return substitution
+	} else {
+		return what
+	}
+}
+function sort(arr, reverse){
+	var result = arr.sort();
+	if (reverse){
+		result = arr.reverse();
+	}
+	return result;
+}
+
+function first(arr){
+	return arr[0]
+}
+function last(arr){
+	return arr[arr.length - 1]
+}
+function join(arr, divider){
+	return arr.join(divider)
+}
+function uniq(arr){
+	//TODO
+	var result = arr;
+	return result
 }
 
 
-function _default(){
-	
-}
-
-function _date(){
-
-}
-
-function _escape(){
-
-}
-
-function _first(){
-
-}
-
-function _join(){
-
-}
-
-function _json(){
-
-}
-
-function _last(){
-
-}
-
-function _lower(){
-
+function titleCase(str){
+	var words = str.split(" ");
+	for (var i = 0; i < words.length; i++){
+		words[i] = capitalize(words[i])
+	}
+	return words.join(" ")
 }
 
 
-function _replace(){
+/**
+* 'abC Dfef' → 'Abc def'
+*/
+function capitalize(str) {
+	return str.toString()[0].toUpperCase() + str.toString().slice(1).toLowerCase();
+}
 
+/**
+* 'abcdef' →(3, '...')→ 'abc...'
+*/
+function truncatechars(str, len, ending){
+	return str.slice(0, len) + (ending || "")
+}
+
+/**
+*/
+function _escape(what, how){
+	//TODO
+	return what
 }
 
 
-function _reverse(){
-
+/*
+* --------------------- Djangoes
+*/
+function add(augent, addent){
+	return augent + addent
 }
-
-function _safe(){
-
+function addslashes(str){
+	//TODO
+	return str
 }
-
-function _sort(){
-
+function cut(str, value){
+	return str.replace(new RegExp(value, "g"), "");
 }
-
-function _striptags(){
-
-}
-
-function _title(){
-
-}
-
-function _uniq(){
-
-}
-
-function _length(){
-
-}
-
-
-function _upper(){
-
-}
-function _url_encode(){
-
-}
-function _url_decode(){
-
-}
-
-
 	var primitives = {
 	int: int,
 	number: number,
@@ -1772,7 +1780,10 @@ extend(I, {
 	/** @expose */
 	Expression: Expression,
 	/** @expose */
-	DataDescriptor: DataDescriptor
+	DataDescriptor: DataDescriptor,
+
+	/** @expose */
+	filters: filters
 
 });
 })();
