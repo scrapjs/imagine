@@ -215,7 +215,7 @@ function doWithin(str, fn, ll){
 		//find outermost limiter from optional limiters passed
 		if (curLim < 0){
 			for (var j = 0; j < llLen; j++){
-				if (str.substr(i, ll[j][0].length) === ll[j][0]) {
+				if (str.substr(i, ll[j][0].length) === ll[j][0] && str[i-1] !== "\\") {
 					curLim = j;
 					break;
 				}
@@ -224,7 +224,7 @@ function doWithin(str, fn, ll){
 
 		//if insideof some limiter already
 		if ( curLim >= 0
-			&& str.substr(i, ll[curLim][0].length) === ll[curLim][0]
+			&& str.substr(i, ll[curLim][0].length) === ll[curLim][0] && str[i-1] !== "\\"
 			&& (ll[curLim][0] !== ll[curLim][1] || (ll[curLim][0] === ll[curLim][1] && lCount === 0))){
 			//find limiter from optional passed, if possible
 			if (lCount === 0) {
@@ -234,7 +234,8 @@ function doWithin(str, fn, ll){
 			}
 			i += ll[curLim][0].length;
 			lCount++;
-		} else if ( curLim >= 0 && lCount > 0 && str.substr(i, ll[curLim][1].length) === ll[curLim][1]){
+		} else if ( curLim >= 0 && lCount > 0 
+			&& str.substr(i, ll[curLim][1].length) === ll[curLim][1] && str[i-1] !== "\\"){
 			lCount--;
 			if (lCount === 0){
 				result += ll[curLim][0] + fn(str.slice(cutPoint, i)) + ll[curLim][1];
@@ -318,7 +319,7 @@ function recognizeParam(str, context){
 	}
 
 	//'string'
-	else if (/^(?:"[^"]*"|'[^']*')$/.test(str)){
+	else if (/^(?:"(?:[^"]|\\")*"|'(?:[^']|\\')*')$/.test(str)){
 		return str.slice(1,-1);
 	}
 
@@ -1539,11 +1540,19 @@ DataDescriptor.prototype = {
 */
 
 var filters = {
+	//strings
 	capitalize: capitalize,
 	capfirst: capitalize,
-	'default': _default,
 	truncatechars: truncatechars,
+	escape: _escape,
+	e: _escape,
+	uppper: upper,
+	lower: lower,
+	url_encode: escape,
+	url_decode: unescape,
+	striptags: striptags,
 
+	//arrays
 	sort: sort,
 	reverse: reverse,
 	first: first,
@@ -1551,13 +1560,15 @@ var filters = {
 	uniq: uniq,
 	join: join,
 	title: titleCase,
+	addslashes: addslashes,
+	replace: replace,
 
-	escape: _escape,
-	e: _escape,
-
+	//other
+	'default': _default,
 	any: any,
 	random: any,
 
+	//djangos
 	add: add,
 	cut: cut
 }
@@ -1579,7 +1590,6 @@ function sort(arr, reverse){
 	}
 	return result;
 }
-
 function first(arr){
 	return arr[0]
 }
@@ -1590,12 +1600,16 @@ function join(arr, divider){
 	return arr.join(divider)
 }
 function uniq(arr){
-	//TODO
-	var result = arr;
+	var result = [];
+	for (var i = 0; i < arr.length; i++){
+		if (result.indexOf(arr[i]) < 0){
+			result.push(arr[i])
+		}
+	}
 	return result
 }
 
-
+//strings
 function titleCase(str){
 	var words = str.split(" ");
 	for (var i = 0; i < words.length; i++){
@@ -1603,29 +1617,74 @@ function titleCase(str){
 	}
 	return words.join(" ")
 }
-
-
 /**
 * 'abC Dfef' → 'Abc def'
 */
 function capitalize(str) {
 	return str.toString()[0].toUpperCase() + str.toString().slice(1).toLowerCase();
 }
-
 /**
 * 'abcdef' →(3, '...')→ 'abc...'
 */
 function truncatechars(str, len, ending){
 	return str.slice(0, len) + (ending || "")
 }
-
 /**
 */
 function _escape(what, how){
 	//TODO
-	return what
+	switch (how) {
+		case 'js':
+			var result = "";
+			what = what.replace(/\\/g, '\\u005C');
+			for (var i=0; i < what.length; i ++) {
+				code = what.charCodeAt(i);
+				if (code < 32) {
+					code = code.toString(16).toUpperCase();
+					code = (code.length < 2) ? '0' + code : code;
+					result += '\\u00' + code;
+				} else {
+					result += what[i];
+				}
+			}
+			return result.replace(/&/g, '\\u0026')
+			.replace(/</g, '\\u003C')
+			.replace(/>/g, '\\u003E')
+			.replace(/\'/g, '\\u0027')
+			.replace(/"/g, '\\u0022')
+			.replace(/\=/g, '\\u003D')
+			.replace(/-/g, '\\u002D')
+			.replace(/;/g, '\\u003B');
+		default:
+			return what.replace(/&(?!amp;|lt;|gt;|quot;|#39;)/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
+}
+function upper(str){
+	return str.toUpperCase();
+}
+function lower(str){
+	return str.toLowerCase();
+}
+function replace(str, search, replacement, flags){
+	var r = new RegExp(search, flags);
+	return str.replace(r, replacement);
+}
+function striptags(str){
+	return str.replace(/<[^>]+>/g, "")
 }
 
+
+//TODOs
+function date(){
+
+}
+function safe(){
+
+}
 
 /*
 * --------------------- Djangoes
@@ -1634,13 +1693,15 @@ function add(augent, addent){
 	return augent + addent
 }
 function addslashes(str){
-	//TODO
-	return str
+	return escapeSymbols(str, "'\"\\")
 }
 function cut(str, value){
 	return str.replace(new RegExp(value, "g"), "");
 }
-	var primitives = {
+	/*
+* Stuff mostly implementing JSON-generator functions
+*/
+var primitives = {
 	int: int,
 	number: number,
 	float: float,

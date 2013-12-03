@@ -61,6 +61,8 @@
 			ok(imagine.escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
 			ok(imagine.escapeWithin("[abc(def,'g ')], 'hi$jk'", "''", "()") === "[abc(def%2C%27g%20%27)], 'hi%24jk'", "Multiple escaping")
 
+			equal(imagine.escapeWithin("'abcd\\'d \"ef\\g\"'", "''", '""'), "'abcd%5C%27d%20%22ef%5Cg%22'", "quotes hell")
+
 		})
 
 		test("tech stuff", function(){
@@ -301,8 +303,16 @@
 			deepEqual(imagine.expression(/{{ 'abcd eF'|capitalize }}/), "Abcd ef", "capitalize")
 			deepEqual(imagine.expression(/{{ 'abcd eF.gh'|title }}/), "Abcd Ef.gh", "title")
 			deepEqual(imagine.expression(/{{ 'abcd efg'|capitalize|truncatechars(3, '...') }}/), "Abc...", "truncatechars")
-			deepEqual(imagine.expression(/{{ 'abcd <eF>'|escape('js') }}/), "Abcd \\u003ef\\u003E", "escape js")
-			deepEqual(imagine.expression(/{{ 'abcd <eF>'|escape('html') }}/), "Abcd ef", "escape html")
+			deepEqual(imagine.expression(/{{ 'abcd <eF>'|capitalize|escape('js') }}/), "Abcd \\u003Cef\\u003E", "escape js")
+			deepEqual(imagine.expression(/{{ 'abcd <eF>'|capitalize|escape('html') }}/), "Abcd &lt;ef&gt;", "escape html")
+			deepEqual(imagine.expression("{{ 'abcd \"ef\\g\"'|addslashes }}"), "abcd \\\"ef\\\\g\\\"", "addslashes")
+			equal(imagine.expression(/{{ 'foobar'|replace('o', 'e', 'g') }}/), "feebar", "replace1")
+			equal(imagine.expression(/{{ 'farfegnugen'|replace('^f', 'p') }}/), "parfegnugen", "replace2")
+			imagine.my_str = 'param=1&anotherParam=2';
+			imagine.my_str = imagine.expression("{{ my_str|url_encode }}");
+			equal(imagine.my_str, 'param%3D1%26anotherParam%3D2', "url encode");			
+			equal(imagine.expression("{{ my_str|url_decode }}"), "param=1&anotherParam=2", "url decode");
+			equal(imagine.expression("{{ '<p>foobar</p>'|striptags }}"), "foobar", "striptags");
 
 			//other
 			deepEqual(imagine.expression("{{ ''|default(123) }}"), 123, "default string")

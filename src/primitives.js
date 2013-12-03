@@ -1,3 +1,6 @@
+/*
+* Stuff mostly implementing JSON-generator functions
+*/
 var primitives = {
 	int: int,
 	number: number,

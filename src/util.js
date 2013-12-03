@@ -214,7 +214,7 @@ function doWithin(str, fn, ll){
 		//find outermost limiter from optional limiters passed
 		if (curLim < 0){
 			for (var j = 0; j < llLen; j++){
-				if (str.substr(i, ll[j][0].length) === ll[j][0]) {
+				if (str.substr(i, ll[j][0].length) === ll[j][0] && str[i-1] !== "\\") {
 					curLim = j;
 					break;
 				}
@@ -223,7 +223,7 @@ function doWithin(str, fn, ll){
 
 		//if insideof some limiter already
 		if ( curLim >= 0
-			&& str.substr(i, ll[curLim][0].length) === ll[curLim][0]
+			&& str.substr(i, ll[curLim][0].length) === ll[curLim][0] && str[i-1] !== "\\"
 			&& (ll[curLim][0] !== ll[curLim][1] || (ll[curLim][0] === ll[curLim][1] && lCount === 0))){
 			//find limiter from optional passed, if possible
 			if (lCount === 0) {
@@ -233,7 +233,8 @@ function doWithin(str, fn, ll){
 			}
 			i += ll[curLim][0].length;
 			lCount++;
-		} else if ( curLim >= 0 && lCount > 0 && str.substr(i, ll[curLim][1].length) === ll[curLim][1]){
+		} else if ( curLim >= 0 && lCount > 0 
+			&& str.substr(i, ll[curLim][1].length) === ll[curLim][1] && str[i-1] !== "\\"){
 			lCount--;
 			if (lCount === 0){
 				result += ll[curLim][0] + fn(str.slice(cutPoint, i)) + ll[curLim][1];
@@ -317,7 +318,7 @@ function recognizeParam(str, context){
 	}
 
 	//'string'
-	else if (/^(?:"[^"]*"|'[^']*')$/.test(str)){
+	else if (/^(?:"(?:[^"]|\\")*"|'(?:[^']|\\')*')$/.test(str)){
 		return str.slice(1,-1);
 	}
 
