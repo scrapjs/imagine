@@ -37,7 +37,7 @@ function CallSequence(str, context){
 	this.chunkArguments.push(parseArguments(unescape(match[2]), this.context));
 
 	this.chunkTarget = this.context[this.chunkNames[0]];
-	if (this.chunkTarget === undefined) this.chunkTarget = primitives[this.chunkNames[0]];
+	if (this.chunkTarget === undefined) this.chunkTarget = I[this.chunkNames[0]];
 
 	if (this.chunkTarget === undefined) console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", this.context)
 

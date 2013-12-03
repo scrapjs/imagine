@@ -18,7 +18,7 @@ function Filter(str, context){
 	}
 
 	// Target filter function to call, like `capitalize`
-	this.fn = filters[this.name];
+	this.fn = I.filters[this.name];
 
 	if (!this.fn){
 		console.error("no filter `" + this.name + "` found. `none` is used instead.")

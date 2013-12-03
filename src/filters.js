@@ -4,7 +4,7 @@
 * Easily extandable as Imagine.filters.filter = function(input, params){ return output}
 */
 
-var filters = {
+extend(I.filters, {
 	//strings
 	capitalize: capitalize,
 	capfirst: capitalize,
@@ -36,7 +36,7 @@ var filters = {
 	//djangos
 	add: add,
 	cut: cut
-}
+})
 
 /*
 * --------------------------- Swigs
@@ -103,7 +103,7 @@ function _escape(what, how){
 			var result = "";
 			what = what.replace(/\\/g, '\\u005C');
 			for (var i=0; i < what.length; i ++) {
-				code = what.charCodeAt(i);
+				var code = what.charCodeAt(i);
 				if (code < 32) {
 					code = code.toString(16).toUpperCase();
 					code = (code.length < 2) ? '0' + code : code;

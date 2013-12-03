@@ -9,7 +9,9 @@ var refBrackets = ["⦅", "⦆"], //["<", ">"]
 	escaper = "\\",
 	unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs",
 	stringRE = /(?:'[^']*'|"[^"]*")/g,
-	dataDelimiter = ["{{", "}}"] //delimiters to split data-chunks from string
+	dataDelimiter = ["{{", "}}"], //delimiters to split data-chunks from string
+	badTags = 'applet base basefont frame frameset head isindex link meta noframes noscript object param script style title'.split( ' ' );
+
 
 /*
 	class extender tool
@@ -146,7 +148,7 @@ function expression(str, ctx){
 */
 function sanitize(str, tags){
 	var res = str;
-	tags = tags || I.o.badTags;
+	tags = tags || badTags;
 	for (var i = 0; i < tags.length; i++){
 		var fullTagReStr = ["<", tags[i], "\\b(?:[^](?!<\\/", tags[i] ,"))*[^]<\\/", tags[i], "\\b[^>]*>"].join("");
 		var fullTagRe = new RegExp(fullTagReStr, "ig");

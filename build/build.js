@@ -1,5 +1,6 @@
 (function(){
 	//#include ../src/util.js
+	//#include ../src/Imagine.js
 	//#include ../src/expressions/Expression.js
 	//#include ../src/expressions/Token.js
 	//#include ../src/expressions/GroupToken.js
@@ -13,5 +14,6 @@
 	//#include ../src/DataDescriptor.js
 	//#include ../src/filters.js
 	//#include ../src/primitives.js
-	//#include ../src/Imagine.js
+
+
 })();

@@ -1,12 +1,7 @@
 /*
 * Stuff mostly implementing JSON-generator functions
 */
-var primitives = {
-	int: int,
-	number: number,
-	float: float,
-	bool: bool,
-	none: none,
+extend(I, {
 
 	//JSON-generator ones
 	//TODO: think up guid and index
@@ -62,4 +57,4 @@ var primitives = {
 				break;
 		}
 	},
-}
+});

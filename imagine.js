@@ -10,7 +10,9 @@ var refBrackets = ["⦅", "⦆"], //["<", ">"]
 	escaper = "\\",
 	unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs",
 	stringRE = /(?:'[^']*'|"[^"]*")/g,
-	dataDelimiter = ["{{", "}}"] //delimiters to split data-chunks from string
+	dataDelimiter = ["{{", "}}"], //delimiters to split data-chunks from string
+	badTags = 'applet base basefont frame frameset head isindex link meta noframes noscript object param script style title'.split( ' ' );
+
 
 /*
 	class extender tool
@@ -147,7 +149,7 @@ function expression(str, ctx){
 */
 function sanitize(str, tags){
 	var res = str;
-	tags = tags || I.o.badTags;
+	tags = tags || badTags;
 	for (var i = 0; i < tags.length; i++){
 		var fullTagReStr = ["<", tags[i], "\\b(?:[^](?!<\\/", tags[i] ,"))*[^]<\\/", tags[i], "\\b[^>]*>"].join("");
 		var fullTagRe = new RegExp(fullTagReStr, "ig");
@@ -397,6 +399,75 @@ function parseArguments(str, context){
 
 	return result;
 }
+	/*
+*	How's project called
+*/
+var projectName = "imagine";
+
+/*
+* Main keeper object - singleton
+* External methods & default context
+*/
+var I = {
+	//settings
+	locale: 'en_EN',
+
+	//utils - exposed private functions
+	utils: {
+		refBrackets: refBrackets, //TODO: remove from tests
+		extend: extend,
+		/** @expose */
+		escapeWithin: escapeWithin,
+		/** @expose */
+		unescapeWithin: unescapeWithin,
+		/** @expose */
+		escapeSymbols: escapeSymbols,
+		/** @expose */
+		unescapeSymbols: unescapeSymbols,
+		/** @expose */
+		parseArguments: parseArguments,
+	},
+
+	//API - data-functions
+	/** @expose */
+	any: any,
+	/** @expose */
+	int: int,
+	/** @expose */
+	float: float,
+	/** @expose */
+	number: number,
+	/** @expose */
+	bool: bool,
+	/** @expose */
+	replacements: replacements,
+	/** @expose */
+	expression: expression,
+	/** @expose */
+	none: none,
+	/** @expose */
+	populate: populate,
+	/** @expose */
+	fixed: fixed,
+	/** @expose */
+	index: index,
+	/** @expose */
+	repeat: repeat,
+	/** @expose */
+	sanitize: sanitize,
+
+	//Extendable filters set
+	/** @expose */
+	filters: {},
+
+	//Classes
+	Expression: Expression
+
+};
+
+
+//Make global
+window[projectName] = I;
 	/**
 *	Expression represents specific structure to generate.
 *	Provides context for tokens.
@@ -1111,7 +1182,7 @@ function CallSequence(str, context){
 	this.chunkArguments.push(parseArguments(unescape(match[2]), this.context));
 
 	this.chunkTarget = this.context[this.chunkNames[0]];
-	if (this.chunkTarget === undefined) this.chunkTarget = primitives[this.chunkNames[0]];
+	if (this.chunkTarget === undefined) this.chunkTarget = I[this.chunkNames[0]];
 
 	if (this.chunkTarget === undefined) console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", this.context)
 
@@ -1210,7 +1281,7 @@ function Filter(str, context){
 	}
 
 	// Target filter function to call, like `capitalize`
-	this.fn = filters[this.name];
+	this.fn = I.filters[this.name];
 
 	if (!this.fn){
 		console.error("no filter `" + this.name + "` found. `none` is used instead.")
@@ -1539,7 +1610,7 @@ DataDescriptor.prototype = {
 * Easily extandable as Imagine.filters.filter = function(input, params){ return output}
 */
 
-var filters = {
+extend(I.filters, {
 	//strings
 	capitalize: capitalize,
 	capfirst: capitalize,
@@ -1571,7 +1642,7 @@ var filters = {
 	//djangos
 	add: add,
 	cut: cut
-}
+})
 
 /*
 * --------------------------- Swigs
@@ -1638,7 +1709,7 @@ function _escape(what, how){
 			var result = "";
 			what = what.replace(/\\/g, '\\u005C');
 			for (var i=0; i < what.length; i ++) {
-				code = what.charCodeAt(i);
+				var code = what.charCodeAt(i);
 				if (code < 32) {
 					code = code.toString(16).toUpperCase();
 					code = (code.length < 2) ? '0' + code : code;
@@ -1701,12 +1772,7 @@ function cut(str, value){
 	/*
 * Stuff mostly implementing JSON-generator functions
 */
-var primitives = {
-	int: int,
-	number: number,
-	float: float,
-	bool: bool,
-	none: none,
+extend(I, {
 
 	//JSON-generator ones
 	//TODO: think up guid and index
@@ -1762,89 +1828,7 @@ var primitives = {
 				break;
 		}
 	},
-}
-	/*
-*	How's project called
-*/
-var projectName = "imagine";
-
-
-/*
-*	Main keeper object - singleton
-*/
-var I = {};
-window[projectName] = I;
-
-
-/*
-*	Init improviser settings
-*/
-I.o = {
-	locale: 'en_EN', //default locale to rely on
-	badTags: 'applet base basefont frame frameset head isindex link meta noframes noscript object param script style title'.split( ' ' ),
-};
-if (window[projectName]){
-	extend(I.o, window[projectName]);
-}
-
-
-/*
-*	External methods & default context
-*/
-extend(I, {
-	refBrackets: refBrackets, 
-
-	//utils
-	extend: extend,
-	/** @expose */
-	escapeWithin: escapeWithin,
-	/** @expose */
-	unescapeWithin: unescapeWithin,
-	/** @expose */
-	escapeSymbols: escapeSymbols,
-	/** @expose */
-	unescapeSymbols: unescapeSymbols,
-	/** @expose */
-	parseArguments: parseArguments,
-
-	//API
-	/** @expose */
-	any: any,
-	/** @expose */
-	int: int,
-	/** @expose */
-	float: float,
-	/** @expose */
-	number: number,
-	/** @expose */
-	bool: bool,
-	/** @expose */
-	replacements: replacements,
-	/** @expose */
-	expression: expression,
-	/** @expose */
-	sanitize: sanitize,
-	/** @expose */
-	none: none,
-	/** @expose */
-	populate: populate,
-
-	//Set of filters
-	/** @expose */
-	fixed: fixed,
-	/** @expose */
-	index: index,
-	/** @expose */
-	repeat: repeat,
-
-	//Classes
-	/** @expose */
-	Expression: Expression,
-	/** @expose */
-	DataDescriptor: DataDescriptor,
-
-	/** @expose */
-	filters: filters
-
 });
+
+
 })();

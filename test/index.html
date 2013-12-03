@@ -9,8 +9,7 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
 	
-	<script src="../src/util.js"></script>
-	<script src="../src/filters.js"></script>
+	<!--<script src="../src/util.js"></script>
 	<script src="../src/expressions/CallSequence.js"></script>
 	<script src="../src/expressions/Filter.js"></script>
 	<script src="../src/expressions/Expression.js"></script>
@@ -22,12 +21,16 @@
 	<script src="../src/expressions/AnyToken.js"></script>
 	<script src="../src/expressions/RepeatExpression.js"></script>
 	<script src="../src/DataDescriptor.js"></script>
-	<script src="../src/primitives.js"></script>
 	<script src="../src/Imagine.js"></script>
+	<script src="../src/filters.js"></script>
+	<script src="../src/primitives.js"></script>-->
 	
-	<!--<script src="../imagine.min.js"></script>-->
+	<script src="../imagine.min.js"></script>
 
-	<script src="../data/Internet.js"></script>
+	<!-- extra stuff -->
+	<!--<script src="../src/filters.js"></script>
+	<script src="../src/primitives.js"></script>-->
+
 
 	<script src="qunit.js"></script>
 
@@ -35,38 +38,38 @@
 		test("escape, unescape", function(){
 			ok(imagine.fixed("123", 5) === "00123", "fixed test")
 
-			ok(imagine.escapeSymbols("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
-			ok(imagine.escapeSymbols("\\", "\\") === "\\\\", "escape \\");
-			ok(imagine.escapeSymbols("123\\456", "\\") === "123\\\\456", "escape \\ 2");
+			ok(imagine.utils.escapeSymbols("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
+			ok(imagine.utils.escapeSymbols("\\", "\\") === "\\\\", "escape \\");
+			ok(imagine.utils.escapeSymbols("123\\456", "\\") === "123\\\\456", "escape \\ 2");
 
-			ok(imagine.unescapeSymbols("\\", "\\") === "\\", "unescape \\")
-			ok(imagine.unescapeSymbols("\\\\", "\\") === "\\", "unescape \\\\")
-			ok(imagine.unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
-			ok(imagine.unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
+			ok(imagine.utils.unescapeSymbols("\\", "\\") === "\\", "unescape \\")
+			ok(imagine.utils.unescapeSymbols("\\\\", "\\") === "\\", "unescape \\\\")
+			ok(imagine.utils.unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
+			ok(imagine.utils.unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
 
-			ok(imagine.escapeWithin("123{4}567", "{}") === "123{4}567", "hooked up native escape")
-			ok(imagine.escapeWithin("{4}", "{}") === "{4}", "native 2")
-			ok(imagine.escapeWithin("{}", "{}") === "{}", "native 3");
-			ok(imagine.escapeWithin("a{}b", "{}") === "a{}b", "native 4"); 
-			ok(imagine.escapeWithin("a{}b{}c{}d{e}f", "{}") === "a{}b{}c{}d{e}f", "native 5")
-			ok(imagine.escapeWithin("{}{}", "{}") === "{}{}", "native 6")
-			ok(imagine.escapeWithin("{{}}", "{}") === "{%7B%7D}", "native 7")
-			ok(imagine.escapeWithin("a(b(c(de{}f[]g()h())))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29)", "complicated escape")
+			ok(imagine.utils.escapeWithin("123{4}567", "{}") === "123{4}567", "hooked up native escape")
+			ok(imagine.utils.escapeWithin("{4}", "{}") === "{4}", "native 2")
+			ok(imagine.utils.escapeWithin("{}", "{}") === "{}", "native 3");
+			ok(imagine.utils.escapeWithin("a{}b", "{}") === "a{}b", "native 4"); 
+			ok(imagine.utils.escapeWithin("a{}b{}c{}d{e}f", "{}") === "a{}b{}c{}d{e}f", "native 5")
+			ok(imagine.utils.escapeWithin("{}{}", "{}") === "{}{}", "native 6")
+			ok(imagine.utils.escapeWithin("{{}}", "{}") === "{%7B%7D}", "native 7")
+			ok(imagine.utils.escapeWithin("a(b(c(de{}f[]g()h())))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29)", "complicated escape")
 
-			ok(imagine.escapeWithin("a{{ bc{} de{{d}}}}", ["{{", "}}"]) === "a{{%20bc%7B%7D%20de%7B%7Bd%7D%7D}}", "Long escapers")
+			ok(imagine.utils.escapeWithin("a{{ bc{} de{{d}}}}", ["{{", "}}"]) === "a{{%20bc%7B%7D%20de%7B%7Bd%7D%7D}}", "Long escapers")
 
 			var src = "a(b( c$( de{ $ }f[ ' 67#' ]g()h())))";
-			ok(imagine.unescapeWithin(imagine.escapeWithin(src, "()", "''", "{}"), "()", "{}", "''") === src, "reversivity of escaping")
+			ok(imagine.utils.unescapeWithin(imagine.utils.escapeWithin(src, "()", "''", "{}"), "()", "{}", "''") === src, "reversivity of escaping")
 
-			ok(imagine.escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
-			ok(imagine.escapeWithin("[abc(def,'g ')], 'hi$jk'", "''", "()") === "[abc(def%2C%27g%20%27)], 'hi%24jk'", "Multiple escaping")
+			ok(imagine.utils.escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
+			ok(imagine.utils.escapeWithin("[abc(def,'g ')], 'hi$jk'", "''", "()") === "[abc(def%2C%27g%20%27)], 'hi%24jk'", "Multiple escaping")
 
-			equal(imagine.escapeWithin("'abcd\\'d \"ef\\g\"'", "''", '""'), "'abcd%5C%27d%20%22ef%5Cg%22'", "quotes hell")
+			equal(imagine.utils.escapeWithin("'abcd\\'d \"ef\\g\"'", "''", '""'), "'abcd%5C%27d%20%22ef%5Cg%22'", "quotes hell")
 
 		})
 
 		test("tech stuff", function(){
-			deepEqual(imagine.parseArguments("'}}}}{{{{', '{{{{}}}}'"), ['}}}}{{{{', '{{{{}}}}'], "args parsing list")
+			deepEqual(imagine.utils.parseArguments("'}}}}{{{{', '{{{{}}}}'"), ['}}}}{{{{', '{{{{}}}}'], "args parsing list")
 		})
 
 		test( "number, float, int, bool", function() {
@@ -140,14 +143,14 @@
 
 			//<5>(<6>a<7>)<8>
 			var initialStr = [
-					imagine.refBrackets[0], 5,
-					imagine.refBrackets[1], '(',
-					imagine.refBrackets[0], 6,
-					imagine.refBrackets[1], 'a',
-					imagine.refBrackets[0], 7,
-					imagine.refBrackets[1], ')',
-					imagine.refBrackets[0], 8,
-					imagine.refBrackets[1]
+					imagine.utils.refBrackets[0], 5,
+					imagine.utils.refBrackets[1], '(',
+					imagine.utils.refBrackets[0], 6,
+					imagine.utils.refBrackets[1], 'a',
+					imagine.utils.refBrackets[0], 7,
+					imagine.utils.refBrackets[1], ')',
+					imagine.utils.refBrackets[0], 8,
+					imagine.utils.refBrackets[1]
 				].join('')
 			var resultingStr = initialStr.replace(/[\(\)]/g, '');
 
@@ -270,7 +273,7 @@
 			//TODO: full-featured data-sources, nested evil
 		});
 
-		test("mimic json generator properties", function(){
+		test("mimic json generator primitives", function(){
 			
 		});
 
