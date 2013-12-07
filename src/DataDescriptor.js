@@ -28,16 +28,14 @@ new DataDescriptor({
 /**
 * @constructor
 */
-function DataDescriptor(src, context) {
+function DataDescriptor(src) {
 	//context to keep tacidly data related with populating expressions
-	this.context = context || extend({}, I, {
-		populate: this.populate
-	});
 
-	this.model = this.recognize(src, this.context);
+	this.model = this.recognize(src);
 
-		this.stop = 0;
+	this.stop = 0;
 	//console.log("new dd", this.model)
+	//TODO: these new data descriptors are not apprehended by repeatEx
 }
 
 
@@ -77,12 +75,12 @@ DataDescriptor.prototype = {
 	recognize: function(src){
 		//if list is passed - use it as a basis
 		if (src instanceof Array){
-			return new RepeatExpression(src, this.context);
+			return new RepeatExpression(src);
 		}
 
 		//if string passed - parse data-descriptor from it and init model
-		else if (typeof src === "string"){
-			return new Expression(src, this.context);
+		else if (typeof src === "string" || src instanceof RegExp ){
+			return expression(src);
 		}
 
 		//if simple object is passed - make a list from it
@@ -100,7 +98,7 @@ DataDescriptor.prototype = {
 	* If descriptor of format {obj}
 	*/
 	recognizeObject: function(descriptor){
-		if (!descriptor) return descriptor;
+		if (!descriptor || typeof descriptor === "function") return descriptor;
 
 		var result = {};
 
@@ -112,48 +110,54 @@ DataDescriptor.prototype = {
 		return result;
 	},
 
-	/*
-	*	Known data-types populators
+	/**
+	* External method
+	* @expose
 	*/
-	populate: function(model){ //TODO: if undefined passed deliberately
-
+	populate: function(ctx){ //TODO: if undefined passed deliberately
+		var context = ctx || I;
+		return this.populateModel(context, this.model);
+	},
+	/**
+	* Private populator of model
+	*/
+	populateModel: function(ctx, model){
 		var result = undefined;
 
-		if (arguments.length == 0){
-			var model = this.model;
-		} else {
-			var model = model;
-		}
-		//console.group("populate datadesc", model)
-
+		console.group("populate datadesc with model", model)
 
 		if (model instanceof Expression){
-			result = model.populate();
+			result = model.populate(ctx);
 		} else if (model instanceof DataDescriptor){
-			result = model.populate();
+			result = model.populate(ctx);
 		} else if (model instanceof RepeatExpression){
-			result = model.populate();
+			result = model.populate(ctx);
 		} else if (model instanceof Object){
 			if (this.stop >= 19){
 				console.error("Too big depth of population. Reassert your DataDescriptor")
 				return undefined;
 			}
-			result = this.populateObject(model);
+			result = this.populateObject(ctx, model);
 		} else {
 			result = model;
 		}
 		//console.log("pop result", result)
-		//console.groupEnd();
+		console.groupEnd();
 
 		return result
 	},
-	populateObject: function(obj){
+	populateObject: function(ctx, obj){
+		if (typeof obj === "function"){
+			//TODO: think about passing a param to function
+			return obj.apply(ctx);
+		}
+
 		var result = {};
 		this.stop += 1;
 		for (var key in obj){
 			//console.group("populate object key: `" + key+ "`", obj[key], "result:", result)
 			//result[key] = obj[key]
-			result[key] = this.populate(obj[key]);
+			result[key] = this.populateModel(ctx, obj[key]);
 			//console.log("populated obj key `" + key + "` result:", result)
 			//console.groupEnd();
 		}

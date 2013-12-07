@@ -3,16 +3,15 @@
 * Used to call filter with special params in runtime
 * @constructor
 */
-function Filter(str, context){
+function Filter(str){
 	//console.group("filter", str)
-	this.context = extend({}, I, context);
 
 	var firstBrace = str.indexOf("(");
 
 	if (firstBrace > 0){
 		this.name = str.slice(0, firstBrace).trim();
 		//console.log(str)
-		this.params = parseArguments(str.slice(firstBrace).slice(1,-1), this.context);
+		this.params = parseArguments(str.slice(firstBrace).slice(1,-1));
 	} else{
 		this.name = str.trim();
 	}
@@ -31,22 +30,22 @@ Filter.prototype = {
 	/*
 	* Main handler: applies filter to the src passed with filtering function fn
 	*/
-	process: function(src){
+	process: function(src, ctx){
 		//console.log("filter process:", src)
-		return this.fn.apply(this, [src].concat(this.getParams()));
+		return this.fn.apply(this, [src].concat(this.getParams(ctx)));
 	},
 
 	/*
 	* Obtains real parameters values
 	* As far as params can include DataSources to call, it has to be called first in order to get real data
 	*/
-	getParams: function(){
+	getParams: function(ctx){
 		if (!this.params) return undefined;
 
 		var result = [];
 		for (var i = 0; i < this.params.length; i++){
 			if (this.params[i] instanceof CallSequence) {
-				result.push(this.params[i].makeCall());
+				result.push(this.params[i].makeCall(ctx));
 			} else {
 				result.push(this.params[i]);
 			}

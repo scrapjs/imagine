@@ -1,3 +1,3 @@
-var Numbers = {
+I.providers.Numbers = {
 	romanNumerals: "IVXLCDM"
 }

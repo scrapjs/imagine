@@ -24,11 +24,11 @@ extend(GroupRefToken.prototype, Token.prototype, {
 		}
 	},
 
-	populate: function(){
+	populate: function(ctx){
 		var times = int(this.multiplier[0], this.multiplier[1], true);
 		var result = "";
 		for (var i = 0; i < times; i++){
-			result += this.expression.groups[this.groupId].populate([1,1]);
+			result += this.expression.groups[this.groupId].populate(ctx, [1,1]);
 		}
 
 		return result;

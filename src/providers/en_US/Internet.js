@@ -1,6 +1,5 @@
 extend( Internet, {
 	tld: ['com', 'biz', 'info', 'net', 'org'],
-	freeEmailDomain: ['gmail.com', 'yahoo.com', 'hotmail.com'],
 	userName: [
 		'{{lastName}}.{{firstName}}',
 		'{{firstName}}.{{lastName}}',
@@ -8,6 +7,18 @@ extend( Internet, {
 		'[a-zA-Z]{{lastName}}'
 	],
 	email: '{{ userName }}@(?: {{ domainName }} | {{ freeEmailDomain }} )',
-	url: '(?:http|http|http|https)://(?:www.)?{{ domainName }}/'
+	url: "{{ protocol }}://(?:www.)?{{ siteName }}.{{ domain }}",
+	protocol: ["http", "https", "ftp"].join("|"),
+
+	siteName: "{{ word|slugify }}",
+
+	userName: [
+		'({{ lastName|slugify }}).({{ firstName|slugify }})',
+		'\\2.\\1',
+		'\\2[0-9]{2}',
+		'[a-z]\\1'
+	].join("|"),
+
+	freeEmailDomain: ['gmail.com', 'yahoo.com', 'hotmail.com'].join("|")
 	
 })

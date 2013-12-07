@@ -1,60 +1,75 @@
 /*
 * Stuff mostly implementing JSON-generator functions
+* 
 */
-extend(I, {
+//TODO: think up something better than just a list of json-generator stuff.
+//
 
-	//JSON-generator ones
-	//TODO: think up guid and index
-	numeric: function(a, b, format){
 
-	},
+//JSON-generator ones
+//TODO: think up guid and index
+function numeric(a, b, format){
 
-	firstName: function(gender){
+}
 
-	},
-	surname: function(){
 
-	},
-	gender: function(){
+function firstName(gender){
 
-	},
-	company: function(){
+}
 
-	},
-	phone: function(mask){
+function surname(){
 
-	},
-	email: function(random){
+}
 
-	},
-	countriesList: function(){
+function gender(){
 
-	},
-	country: function(){
+}
 
-	},
-	state: function(){
+function company(){
 
-	},
-	city: function(){
+}
 
-	},
-	street: function(){
+function phone(mask){
 
-	},
-	date: function(format){
+}
 
-	},
-	lorem: function(count, units){
-		switch (units){
-			case "words":
-				break;
-			case "sentences":
-				break;
-			case "paragraphs":
-				break;
-			default: //chars
-				break;
-		}
-	},
-});
+function email(random){
+
+}
+
+function countriesList(){
+
+}
+
+function country(){
+
+}
+
+function state(){
+
+}
+
+function city(){
+
+}
+
+function street(){
+
+}
+
+function date(format){
+
+}
+
+function lorem(count, units){
+	switch (units){
+		case "words":
+			break;
+		case "sentences":
+			break;
+		case "paragraphs":
+			break;
+		default: //chars
+			break;
+	}
+}

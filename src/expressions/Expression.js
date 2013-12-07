@@ -4,14 +4,12 @@
 *	@constructor
 *	@expose
 */
-function Expression(str, context){
+function Expression(str){
 	this.tokens = [];//dict of tokens
 	this.groups = [];//ordered groups to get access by reference, as usually in regexps
+	//console.log("new Expression", str)
 
 	this.options = extend({}, Expression.defaults);
-
-	//define actual context
-	this.context = context;
 
 	//Handle real RegExps passed
 	if (str instanceof RegExp) str = str.source;
@@ -37,16 +35,6 @@ Expression.defaults = {
 }
 
 Expression.prototype = {
-
-	/*
-	* Overrides current ctx
-	*/
-	setContext: function(ctx){
-		this.context = ctx;
-	},
-	getContext: function(ctx){
-		return this.context;
-	},
 
 	/*
 	*	Return string with nested groups removed, replaced with group references.
@@ -142,9 +130,11 @@ Expression.prototype = {
 	*	Gets generated instance based on this expression
 	* @expose
 	*/
-	populate: function(){
-		//console.group("populate expression:", this)
-		var result = this.tokens[0].populate();
+	populate: function(ctx){
+		var context = ctx || I;
+
+		//console.group("populate expression:", context)
+		var result = this.tokens[0].populate(context);
 		//console.log("pop type", result)
 		//console.groupEnd();
 		if (typeof result === "string"){

@@ -16,7 +16,7 @@ extend(StringToken.prototype, Token.prototype, {
 		}
 	},
 
-	populate: function(multiplier){
+	populate: function(ctx, multiplier){
 		var m = multiplier || this.multiplier,
 			result = "",
 			times = int(m[0], m[1]);

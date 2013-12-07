@@ -9,8 +9,7 @@ var refBrackets = ["⦅", "⦆"], //["<", ">"]
 	escaper = "\\",
 	unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs",
 	stringRE = /(?:'[^']*'|"[^"]*")/g,
-	dataDelimiter = ["{{", "}}"], //delimiters to split data-chunks from string
-	badTags = 'applet base basefont frame frameset head isindex link meta noframes noscript object param script style title'.split( ' ' );
+	dataDelimiter = ["{{", "}}"] //delimiters to split data-chunks from string
 
 
 /*
@@ -84,17 +83,9 @@ function any(arr){
 }
 
 
-
-/*
-* Populates any data passed
-*/
-function populate(obj){
-	var dd = new DataDescriptor(obj);
-	return dd.populate();
-}
-
 //RepeatSequence stubs
 function index(num){
+	console.log("bad index")
 	return num;
 }
 function repeat(){
@@ -117,49 +108,33 @@ function replacements(str, replacements){
 	return str;
 }
 
+
+//cache of expressions
+var expressions = {};
+
 /**
-*	Populate @param string based on regex-like notation mixed with moustache data-insertions.
-*	Examples:
+*	Expressions cacher. Retrieves expression from cache, if any, and if there is none - creates one.
+*	Also can set a context for expression.
 *	"{{ Internet.url }}{2,3}"
 *	"[a-z]{4,5}"
 *	"([1-9][0-9]?)(?:, ${1}){,2}" ⇒ "14", "5" or "2, 12, 45"
 *	""
 *	@return {Expression}
 */
-var expressions = {};
+function expression(str){
+	if (expressions[str]) return expressions[str];
 
-function expression(str, ctx){
-	var expr;
-
-	//cache expression
-	if (!expressions[str]){
-		expr = new Expression(str, ctx);
-		expressions[str] = expr;
-	} else {
-		expr = expressions[str];
-		if (ctx) expr.setContext(ctx);
-	}
-
-	return expr.populate();
+	expressions[str] = new Expression(str);
+	return expressions[str];
 }
 
-/*
-*	strip tags which shouldn’t be involved into the parsing proccess
-*/
-function sanitize(str, tags){
-	var res = str;
-	tags = tags || badTags;
-	for (var i = 0; i < tags.length; i++){
-		var fullTagReStr = ["<", tags[i], "\\b(?:[^](?!<\\/", tags[i] ,"))*[^]<\\/", tags[i], "\\b[^>]*>"].join("");
-		var fullTagRe = new RegExp(fullTagReStr, "ig");
+//cache of call sequences
+var callSequences = {};
+function callSequence(str){
+	if (callSequences[str]) return callSequences[str];
 
-		var shortTagReStr = ["<", tags[i], "[^\\/>]*\\/>"].join("");
-		var shortTagRe = new RegExp(shortTagReStr, "ig");
-		
-		res = res.replace(fullTagRe, '');
-		res = res.replace(shortTagRe, '');
-	}
-	return res
+	callSequences[str] = new CallSequence(str);
+	return callSequences[str];
 }
 
 
@@ -259,40 +234,13 @@ function doWithin(str, fn, ll){
 	return result
 }
 
-/*
-* Returns anything fixed to format
-* fixed(123, '00000') === '00123'
-* fixed(123, 2) === '12'
-* fixed(123, 6) === '000123'
-*/
-function fixed(value, format){
-	var value = value.toString();
-	var length =  value.length;
-	if (typeof format === "string"){
-		length = format.length;
-	} else if (typeof format === "number"){
-		length = Math.round(format)
-	}
-
-	if (length > value.length){
-		var l = length - value.length;
-		for (var i = l; i--;){
-			value = "0" + value;
-		}
-	} else {
-		value = value.slice(0, length);
-	}
-
-	return value;
-}
-
 
 
 /*
 * Determines what the param is: string, data object, sequence, json etc
 * Used to be used within datasource, then migrated to globals due to versatility
 */
-function recognizeParam(str, context){
+function recognizeParam(str){
 	//console.log("recognize:", str)
 	var result = undefined;
 	//123.456
@@ -335,7 +283,7 @@ function recognizeParam(str, context){
 		for (var i = 0; i < params.length; i++){
 			//console.log("list param:", params[i])
 			params[i] = unescape(params[i]).trim();
-			result[i] = recognizeParam(params[i], context);
+			result[i] = recognizeParam(params[i]);
 		}
 
 		return result;
@@ -362,7 +310,7 @@ function recognizeParam(str, context){
 				key = key.slice(1, -1);
 			}
 			value = unescape(value);
-			result[key] = recognizeParam(value, context);
+			result[key] = recognizeParam(value);
 		}
 
 		return result;
@@ -371,7 +319,7 @@ function recognizeParam(str, context){
 	//data.['type'](12, 13).maybe.['with_some']['property'].at.last(1, 'abc', [[1], 2])
 	else if (/[a-z_$@]/i.test(str[0])){
 		//Then define calling sequence
-		return new CallSequence(str, context);
+		return callSequence(str);
 	}
 
 	throw new Error("Can not recognize the param `" + str + "`")
@@ -382,7 +330,7 @@ function recognizeParam(str, context){
 * Arguments parser returns list of arguments parsed from comma-separated string
 * Used to be used within CallSequence, then moved out in favour of versatility
 */
-function parseArguments(str, context){
+function parseArguments(str){
 	//console.log("parse arguments:", str)
 	if (str === undefined) return [null];
 
@@ -393,7 +341,7 @@ function parseArguments(str, context){
 	var result = [];
 
 	for (var i = 0; i < args.length; i++){
-		result.push(recognizeParam(unescape(args[i]), context))
+		result.push(recognizeParam(unescape(args[i])))
 	}
 
 	return result;

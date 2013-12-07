@@ -4,43 +4,10 @@
 * Easily extandable as Imagine.filters.filter = function(input, params){ return output}
 */
 
-extend(I.filters, {
-	//strings
-	capitalize: capitalize,
-	capfirst: capitalize,
-	truncatechars: truncatechars,
-	escape: _escape,
-	e: _escape,
-	uppper: upper,
-	lower: lower,
-	url_encode: escape,
-	url_decode: unescape,
-	striptags: striptags,
-
-	//arrays
-	sort: sort,
-	reverse: reverse,
-	first: first,
-	last: last,
-	uniq: uniq,
-	join: join,
-	title: titleCase,
-	addslashes: addslashes,
-	replace: replace,
-
-	//other
-	'default': _default,
-	any: any,
-	random: any,
-
-	//djangos
-	add: add,
-	cut: cut
-})
-
 /*
 * --------------------------- Swigs
 */
+//arrays
 function _default(what, substitution){
 	if (!what){
 		return substitution
@@ -72,6 +39,9 @@ function uniq(arr){
 		}
 	}
 	return result
+}
+function slice(arr, from ,to){
+	return arr.slice(from, to);
 }
 
 //strings
@@ -141,15 +111,75 @@ function replace(str, search, replacement, flags){
 function striptags(str){
 	return str.replace(/<[^>]+>/g, "")
 }
+var badTags = 'applet base basefont frame frameset head isindex link meta noframes noscript object param script style title'.split( ' ' );
+function sanitize(str, tags){
+	var res = str;
+	tags = tags || badTags;
+	for (var i = 0; i < tags.length; i++){
+		var fullTagReStr = ["<", tags[i], "\\b(?:[^](?!<\\/", tags[i] ,"))*[^]<\\/", tags[i], "\\b[^>]*>"].join("");
+		var fullTagRe = new RegExp(fullTagReStr, "ig");
+
+		var shortTagReStr = ["<", tags[i], "[^\\/>]*\\/>"].join("");
+		var shortTagRe = new RegExp(shortTagReStr, "ig");
+		
+		res = res.replace(fullTagRe, '');
+		res = res.replace(shortTagRe, '');
+	}
+	return res
+}
+
+
+//numbers
+/*
+* Returns anything fixed to format
+* fixed(123, '00000') === '00123'
+* fixed(123, 2) === '12'
+* fixed(123, 6) === '000123'
+*/
+function fixed(value, format){
+	var value = value.toString();
+	var length =  value.length;
+	if (typeof format === "string"){
+		length = format.length;
+	} else if (typeof format === "number"){
+		length = Math.round(format)
+	}
+
+	if (length > value.length){
+		var l = length - value.length;
+		for (var i = l; i--;){
+			value = "0" + value;
+		}
+	} else {
+		value = value.slice(0, length);
+	}
+
+	return value;
+}
+
 
 
 //TODOs
 function date(){
 
 }
-function safe(){
-
+function safe(x){
+	return x;
 }
+/*
+*{{ a|slugify }}
+*/
+//Useful to transcribe foreign names like Дима → Dima
+function slugify(input){
+	var output = input.toLowerCase();
+	output = output.replace(/ /g, "-");
+
+	//TODO: i18d slugification hook
+	//Or maybe just map transcriptions map?
+
+	return output;
+}
+//{{ a|where a.gender == plural and a.face == }}
 
 /*
 * --------------------- Djangoes

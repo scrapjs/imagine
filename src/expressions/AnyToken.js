@@ -32,7 +32,7 @@ extend(AnyToken.prototype, Token.prototype, {
 		this.alternatives = str;
 	},
 
-	populate: function(multiplier){
+	populate: function(ctx, multiplier){
 		var m = multiplier || this.multiplier,
 			result = "",
 			times = int(m[0], m[1], true);

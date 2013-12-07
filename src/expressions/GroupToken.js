@@ -149,7 +149,7 @@ extend(GroupToken.prototype, Token.prototype, {
 		return result
 	},
 
-	populate: function(multiplier){
+	populate: function(ctx, multiplier){
 		//TODO: think up how to populate real types for instances, containing only data, like "{{ true }}"
 
 		var result = "",
@@ -159,11 +159,11 @@ extend(GroupToken.prototype, Token.prototype, {
 		var seq = any(this.alternatives);
 
 		if (times === 1 && seq.length === 1){
-			return seq[0].populate();
+			return seq[0].populate(ctx);
 		} else {
 			for (var i = 0; i < times; i++){
 				for (var j = 0; j < seq.length; j++){
-					result += seq[j].populate();
+					result += seq[j].populate(ctx);
 				}
 			}
 		}

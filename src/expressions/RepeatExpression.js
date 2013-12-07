@@ -2,18 +2,16 @@
 * Wrapper over expression no comprehend things like ["{{ repeat }}", ...things]
 * @constructor
 */
-function RepeatExpression(arr, context){
+function RepeatExpression(arr){
 
-	this.context = {
-		repeat: this.repeat,
-		index: this.index
+	this.repeatContext = {
+		repeat: this.repeat
 	};
-
-	//context for subjects
-	this.nestedContext = context || extend({}, I);
-	this.nestedContext.index = this.index;
-	this.nestedContext.context = this.context;
-	this.context.nestedContext = this.nestedContext;
+	//context for every subject called
+	this.subjectContext = extend({}, I, {
+		lastIndex: undefined,
+		index: this.index
+	});
 
 	//match if first item is `{{ repeat }}` statement
 	var repeatMatch, restArgs, repeatStr;
@@ -27,18 +25,20 @@ function RepeatExpression(arr, context){
 	//eval subjects
 	this.subjects = []
 	for (var i = 0; i < restArgs.length; i++){
-		this.subjects.push(new DataDescriptor(restArgs[i], this.nestedContext))
+		this.subjects.push(new DataDescriptor(restArgs[i]))
 	}
 
 	//if it was a plain array, repeat as many times as subjects is there
 	if (!repeatStr) repeatStr = '{{ repeat(' + this.subjects.length + ') }}';
 
-	this.context.subjects = this.subjects;
+	this.repeatContext.subjects = this.subjects;
+	this.repeatContext.subjectContext = this.subjectContext;
 
 	//own repeat expression
-	this.repeatEx = new Expression(repeatStr, this.context)
+	this.repeatEx = expression(repeatStr)
 
-	//console.log("repeatex", this.context)
+	console.log("repeatex", this.subjects)
+	//NOTE: there everything is ok, shit happens on call
 }
 
 RepeatExpression.prototype = {
@@ -52,13 +52,12 @@ RepeatExpression.prototype = {
 	*/
 	//TODO: repeat with no context returns undefined. Always
 	repeat: function(a, b, c){
+		console.group("repeatcall with ctx", this)
 
 		if (!this.subjects || this.subjects.length === undefined) return undefined
 
-		//console.group("repeatcall", this)
-
+		//define how many times to repeat
 		var min = 1, max = 1, randomly = false;
-		//repeat()
 		if ((b === undefined || b === true || b === false) && a !== undefined){
 			max = a;
 			min = a;
@@ -70,37 +69,35 @@ RepeatExpression.prototype = {
 		}
 
 
-		//define repeat context
-		var lastIndex= undefined,
-			times = int(min, max)
+		//define subjects context
+		var times = int(min, max);
 
-		//Make repeat sequence (resulting populated list)
+		this.subjectContext.lastIndex = undefined;
+
+		//Fill results list
 		var resultList = [], length = this.subjects.length || 1;
 		
 		for (var i = 0; i < times; i++){
 
 			var subject = randomly ? any(this.subjects) : this.subjects[i % length];
-			//console.group("repeat iteration", lastIndex, subject)
+			console.group("repeat iteration", this.subjectContext.lastIndex, subject)
 
-			if (subject && subject.context){
-					subject.context.lastIndex = lastIndex;
-					
-					resultList.push(subject.populate());
+			if (subject){
+				resultList.push(subject.populate(this.subjectContext));
 
 				//if index function has changed last index, increment from the new value
-				if (subject.context.lastIndex !== undefined) {
-					if (lastIndex === undefined) lastIndex = subject.context.lastIndex 
-					lastIndex++;
+				if (this.subjectContext.lastIndex !== undefined) {
+					this.subjectContext.lastIndex++;
 				}
-				//console.log("idx after populate", subject.context.lastIndex)
+				console.log("idx after populate", this.subjectContext.lastIndex)
 			} else {
 				//weird case when non-data-descriptor
 				resultList.push(subject);
 				console.log("wrong num")
 			}
-			//console.groupEnd();
+			console.groupEnd();
 		}
-		//console.groupEnd();
+		console.groupEnd();
 
 		return resultList
 	},
@@ -113,11 +110,14 @@ RepeatExpression.prototype = {
 		if (this.lastIndex === undefined) {
 			this.lastIndex = from || 0;
 		}
-		//console.log("index fn", this.lastIndex)
+		console.log("index fn", this.lastIndex)
 		return this.lastIndex;
 	},
 
-	populate: function(){
-		return this.repeatEx.populate();
+	populate: function(ctx){
+		console.group("populate repeatex", this.subjects)
+		var result = this.repeatEx.populate(this.repeatContext);
+		console.groupEnd();
+		return result;
 	}	
 }

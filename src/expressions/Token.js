@@ -43,7 +43,7 @@ Token.prototype = {
 	/*
 		Main renderer - tries to eval the structure. Returns random model
 	*/
-	populate: function(){
+	populate: function(ctx){
 		
 	},
 

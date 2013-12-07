@@ -27,12 +27,12 @@ extend(DataToken.prototype, Token.prototype, {
 		var filters = sequence.slice(1);
 
 		//Set up vital variables: source
-		this.source = recognizeParam(source, this.expression.context);
+		this.source = recognizeParam(source);
 
 		//And list of filter callers
 		this.filters = [];
 		for (var i = 0; i < filters.length; i++){
-			this.filters.push(new Filter(unescape(filters[i]), this.expression.context))
+			this.filters.push(new Filter(unescape(filters[i])))
 		}
 
 		//console.log("Datatoken source: ", this.source)
@@ -56,9 +56,9 @@ extend(DataToken.prototype, Token.prototype, {
 		}
 	},
 
-	populate: function(multiplier){
-		//console.group("populate datatoken:", this.toString(), " with context", this.context)
-		var result = "",
+	populate: function(ctx, multiplier){
+		//console.group("populate datatoken:", this.toString(), " with context", ctx)
+		var result,
 			m = multiplier || this.multiplier,
 			times = int(m[0], m[1], true);
 
@@ -75,11 +75,12 @@ extend(DataToken.prototype, Token.prototype, {
 
 		//TODO: apply context to the call of function, if it is 
 		if (times === 1){
+			result = this.getData(ctx);
 			//console.groupEnd();
-			return this.getData();
+			return result;
 		} else {
 			for (var i = 0; i < times; i++){
-				result += this.getData();
+				result += this.getData(ctx);
 			}
 		}
 
@@ -89,21 +90,21 @@ extend(DataToken.prototype, Token.prototype, {
 		return result;
 	},
 
-
-	getData: function(){
+	getData: function(ctx){
 		var src = undefined,
 			result;
 		//Makes initial source
-		//console.log("getdata:", this.source)
+		//console.group("data token getdata:", this.source, "with ctx", ctx)
 		if (this.source instanceof CallSequence) {
-			result = this.source.makeCall();
+			result = this.source.makeCall(ctx);
 		} else {
 			result = this.source;
 		}
+		//console.groupEnd()
 
 		//Goes through all filters registered, does CallSequence calls, if needed
 		for (var i = 0; i < this.filters.length; i++){
-			result = this.filters[i].process(result);
+			result = this.filters[i].process(result, ctx);
 		}
 
 		return result;

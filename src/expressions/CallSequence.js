@@ -3,18 +3,16 @@
 * E.g. `.some['property']('to', ['call'], { with: 'params'})[1][2].[3]`
 * It will make all necessary calls to obtain the most recent result
 *
+* Called within expressions only
 * @constructor
 */
-function CallSequence(str, context){
+function CallSequence(str){
 	if (!str) return undefined;
 
-	//console.group("callsequence", str)
-
-	this.context = context || extend({}, I);
+	//console.group("callsequence", str, expression)
 
 	this.chunkNames = [];
 	this.chunkArguments = [];
-	this.chunkTarget = undefined; //Target is only first chunk.
 
 	//Parse chunks
 	//.name(args)
@@ -34,12 +32,7 @@ function CallSequence(str, context){
 	}
 
 	this.chunkNames.push(unescape(match[1]));
-	this.chunkArguments.push(parseArguments(unescape(match[2]), this.context));
-
-	this.chunkTarget = this.context[this.chunkNames[0]];
-	if (this.chunkTarget === undefined) this.chunkTarget = I[this.chunkNames[0]];
-
-	if (this.chunkTarget === undefined) console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", this.context)
+	this.chunkArguments.push(parseArguments(unescape(match[2])));
 
 	str = str.replace(match[0], "");
 
@@ -54,7 +47,7 @@ function CallSequence(str, context){
 	while ((match = str.match(this.plainChunkRE) || str.match(this.keyChunkRE)) && c){
 		//console.log("chunk", match)
 		this.chunkNames.push(unescape(match[1]));
-		this.chunkArguments.push(parseArguments(unescape(match[2]), this.context));
+		this.chunkArguments.push(parseArguments(unescape(match[2])));
 		str = str.replace(match[0], "");
 		c--;
 	}
@@ -68,31 +61,40 @@ CallSequence.prototype = {
 	keyChunkRE: /^\[['"]((?:[^](?!['"]))+[^]|[^])['"]\][ ]?(?:\([^\)]*\))?\.?/i,
 	//indexChunkRE: /^/i,
 
-
 	/*
 	* Invokes sequence
 	*/
-	makeCall: function(){
-		//console.log("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", this.context && this.context)
+	makeCall: function(ctx){
+		var context = ctx || I;
+		//console.group("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", ctx)
 
-		if (this.chunkTarget === undefined) return undefined;
+		var chunkTarget = context[this.chunkNames[0]];
+		if (chunkTarget === undefined) chunkTarget = I[this.chunkNames[0]];
+		if (chunkTarget === undefined) {
+			console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", context)
+			//console.groupEnd();
+			return undefined;
+		}
 
-		if (typeof this.chunkTarget === "function"){
-			var tmpValue = this.chunkTarget.apply(this.context, this.getArgumentsData(this.chunkArguments[0]));
+		if (typeof chunkTarget === "function"){
+			var tmpValue = chunkTarget.apply(context, this.getArgumentsData(this.chunkArguments[0], context));
+			//console.log("callseq result", tmpValue)
 		} else {
 			//TODO: what else value callsequence may possess? If it is object - probably I should eval it with data? No?
-			return this.chunkTarget;
+			//console.groupEnd();
+			return chunkTarget;
 		}
 
 		//Go by chunks
 		for (var i = 1; i < this.chunkNames.length; i++){
 			if (typeof tmpValue[this.chunkNames[i]] === "function"){
-				var args = this.getArgumentsData(this.chunkArguments[i]);
-				tmpValue = tmpValue[this.chunkNames[i]].apply(this.context, args);
+				var args = this.getArgumentsData(this.chunkArguments[i], context);
+				tmpValue = tmpValue[this.chunkNames[i]].apply(context, args);
 			} else {
 				tmpValue = tmpValue[this.chunkNames[i]]
 			}
 		}
+		//console.groupEnd();
 
 		return tmpValue;
 	},
@@ -100,14 +102,14 @@ CallSequence.prototype = {
 	/*
 	* Obtains real data by calling arguments
 	*/
-	getArgumentsData: function(args){
+	getArgumentsData: function(args, ctx){
 		if (!args) return undefined;
 
 		var argsData = [];
 		for (var i = 0; i < args.length; i++){
 			//supposed that each argument is whether plain type or callsequence
 			if (args[i] instanceof CallSequence) {
-				argsData.push(args[i].makeCall());
+				argsData.push(args[i].makeCall(ctx));
 			} else {
 				argsData.push(args[i]);
 			}			
