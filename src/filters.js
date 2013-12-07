@@ -115,9 +115,12 @@ var badTags = 'applet base basefont frame frameset head isindex link meta nofram
 function sanitize(str, tags){
 	var res = str;
 	tags = tags || badTags;
+	//console.log("sanitize", str)
 	for (var i = 0; i < tags.length; i++){
 		var fullTagReStr = ["<", tags[i], "\\b(?:[^](?!<\\/", tags[i] ,"))*[^]<\\/", tags[i], "\\b[^>]*>"].join("");
 		var fullTagRe = new RegExp(fullTagReStr, "ig");
+
+		//console.log(fullTagReStr)
 
 		var shortTagReStr = ["<", tags[i], "[^\\/>]*\\/>"].join("");
 		var shortTagRe = new RegExp(shortTagReStr, "ig");
@@ -125,6 +128,7 @@ function sanitize(str, tags){
 		res = res.replace(fullTagRe, '');
 		res = res.replace(shortTagRe, '');
 	}
+	//console.log("sanitize res", res)
 	return res
 }
 

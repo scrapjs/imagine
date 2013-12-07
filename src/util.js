@@ -160,6 +160,21 @@ function unescapeSymbols(str, symbols){
 }
 
 /*
+* Transforms all stringy synbols like \t, \s, ... to real chars: tab, space etc.
+*/
+function unescapeString(str){
+	str = str.replace(/\\'/g, "'")
+	str = str.replace(/\\"/g, "\"")
+	str = str.replace(/\\t/g, "\t")
+	str = str.replace(/\\b/g, "\b")
+	str = str.replace(/\\n/g, "\n")
+	str = str.replace(/\\r/g, "\r")
+	str = str.replace(/\\f/g, "\f")
+	str = str.replace(/\\([^])/g, "$1");
+	return str;
+}
+
+/*
 * Escapes every occurence of value within symbols, like `escapeWithin(str, "''")`
 * E.g. `escapeWithin("a(b(&))", "()")` returns `a(b%28%26%29)`
 *

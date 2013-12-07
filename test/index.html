@@ -9,7 +9,7 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
 	
-	<script src="../src/util.js"></script>
+	<!--<script src="../src/util.js"></script>
 	<script src="../src/filters.js"></script>
 	<script src="../src/primitives.js"></script>
 	<script src="../src/expressions/CallSequence.js"></script>
@@ -23,9 +23,9 @@
 	<script src="../src/expressions/AnyToken.js"></script>
 	<script src="../src/expressions/RepeatExpression.js"></script>
 	<script src="../src/DataDescriptor.js"></script>
-	<script src="../src/Imagine.js"></script>
+	<script src="../src/Imagine.js"></script>-->
 	
-	<!--<script src="../imagine.min.js"></script>-->
+	<script src="../imagine.min.js"></script>
 
 	<!-- extra stuff -->
 	<!--<script src="../src/filters.js"></script>
@@ -38,38 +38,38 @@
 		test("escape, unescape", function(){
 			ok(imagine.filters.fixed("123", 5) === "00123", "fixed test")
 
-			ok(imagine.utils.escapeSymbols("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
-			ok(imagine.utils.escapeSymbols("\\", "\\") === "\\\\", "escape \\");
-			ok(imagine.utils.escapeSymbols("123\\456", "\\") === "123\\\\456", "escape \\ 2");
+			ok(imagine.util.escapeSymbols("12345*+{}[]", "][") === "12345*+{}\\[\\]", "escape techs");
+			ok(imagine.util.escapeSymbols("\\", "\\") === "\\\\", "escape \\");
+			ok(imagine.util.escapeSymbols("123\\456", "\\") === "123\\\\456", "escape \\ 2");
 
-			ok(imagine.utils.unescapeSymbols("\\", "\\") === "\\", "unescape \\")
-			ok(imagine.utils.unescapeSymbols("\\\\", "\\") === "\\", "unescape \\\\")
-			ok(imagine.utils.unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
-			ok(imagine.utils.unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
+			ok(imagine.util.unescapeSymbols("\\", "\\") === "\\", "unescape \\")
+			ok(imagine.util.unescapeSymbols("\\\\", "\\") === "\\", "unescape \\\\")
+			ok(imagine.util.unescapeSymbols("123\\\\456", "\\") === "123\\456", "unescape \\\\")
+			ok(imagine.util.unescapeSymbols("12345\*\+\{\}\[\]", "][*+{}") === "12345*+{}[]", "unescape techs")
 
-			ok(imagine.utils.escapeWithin("123{4}567", "{}") === "123{4}567", "hooked up native escape")
-			ok(imagine.utils.escapeWithin("{4}", "{}") === "{4}", "native 2")
-			ok(imagine.utils.escapeWithin("{}", "{}") === "{}", "native 3");
-			ok(imagine.utils.escapeWithin("a{}b", "{}") === "a{}b", "native 4"); 
-			ok(imagine.utils.escapeWithin("a{}b{}c{}d{e}f", "{}") === "a{}b{}c{}d{e}f", "native 5")
-			ok(imagine.utils.escapeWithin("{}{}", "{}") === "{}{}", "native 6")
-			ok(imagine.utils.escapeWithin("{{}}", "{}") === "{%7B%7D}", "native 7")
-			ok(imagine.utils.escapeWithin("a(b(c(de{}f[]g()h())))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29)", "complicated escape")
+			ok(imagine.util.escapeWithin("123{4}567", "{}") === "123{4}567", "hooked up native escape")
+			ok(imagine.util.escapeWithin("{4}", "{}") === "{4}", "native 2")
+			ok(imagine.util.escapeWithin("{}", "{}") === "{}", "native 3");
+			ok(imagine.util.escapeWithin("a{}b", "{}") === "a{}b", "native 4"); 
+			ok(imagine.util.escapeWithin("a{}b{}c{}d{e}f", "{}") === "a{}b{}c{}d{e}f", "native 5")
+			ok(imagine.util.escapeWithin("{}{}", "{}") === "{}{}", "native 6")
+			ok(imagine.util.escapeWithin("{{}}", "{}") === "{%7B%7D}", "native 7")
+			ok(imagine.util.escapeWithin("a(b(c(de{}f[]g()h())))", "()") === "a(b%28c%28de%7B%7Df%5B%5Dg%28%29h%28%29%29%29)", "complicated escape")
 
-			ok(imagine.utils.escapeWithin("a{{ bc{} de{{d}}}}", ["{{", "}}"]) === "a{{%20bc%7B%7D%20de%7B%7Bd%7D%7D}}", "Long escapers")
+			ok(imagine.util.escapeWithin("a{{ bc{} de{{d}}}}", ["{{", "}}"]) === "a{{%20bc%7B%7D%20de%7B%7Bd%7D%7D}}", "Long escapers")
 
 			var src = "a(b( c$( de{ $ }f[ ' 67#' ]g()h())))";
-			ok(imagine.utils.unescapeWithin(imagine.utils.escapeWithin(src, "()", "''", "{}"), "()", "{}", "''") === src, "reversivity of escaping")
+			ok(imagine.util.unescapeWithin(imagine.util.escapeWithin(src, "()", "''", "{}"), "()", "{}", "''") === src, "reversivity of escaping")
 
-			ok(imagine.utils.escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
-			ok(imagine.utils.escapeWithin("[abc(def,'g ')], 'hi$jk'", "''", "()") === "[abc(def%2C%27g%20%27)], 'hi%24jk'", "Multiple escaping")
+			ok(imagine.util.escapeWithin("'abc'", "''") === "'abc'", "Escape stirng")
+			ok(imagine.util.escapeWithin("[abc(def,'g ')], 'hi$jk'", "''", "()") === "[abc(def%2C%27g%20%27)], 'hi%24jk'", "Multiple escaping")
 
-			strictEqual(imagine.utils.escapeWithin("'abcd\\'d \"ef\\g\"'", "''", '""'), "'abcd%5C%27d%20%22ef%5Cg%22'", "quotes hell")
+			strictEqual(imagine.util.escapeWithin("'abcd\\'d \"ef\\g\"'", "''", '""'), "'abcd%5C%27d%20%22ef%5Cg%22'", "quotes hell")
 
 		})
 
 		test("tech stuff", function(){
-			deepEqual(imagine.utils.parseArguments("'}}}}{{{{', '{{{{}}}}'"), ['}}}}{{{{', '{{{{}}}}'], "args parsing list")
+			deepEqual(imagine.util.parseArguments("'}}}}{{{{', '{{{{}}}}'"), ['}}}}{{{{', '{{{{}}}}'], "args parsing list")
 		})
 
 		test( "number, float, int, bool", function() {
@@ -122,7 +122,7 @@
 				'n': '0123456789',
 				'?': 'abcdefghijklmnopqrstuvwxyz'
 			};
-			var res = imagine.utils.replacements(str, replacements);
+			var res = imagine.util.replacements(str, replacements);
 			ok (replacements['N'].indexOf(res[0]) >= 0 &&
 				replacements['n'].indexOf(res[1]) >= 0 &&
 				replacements['?'].indexOf(res[2]) >= 0 &&
@@ -138,28 +138,28 @@
 
 			//<5>(<6>a<7>)<8>
 			var initialStr = [
-					imagine.utils.refBrackets[0], 5,
-					imagine.utils.refBrackets[1], '(',
-					imagine.utils.refBrackets[0], 6,
-					imagine.utils.refBrackets[1], 'a',
-					imagine.utils.refBrackets[0], 7,
-					imagine.utils.refBrackets[1], ')',
-					imagine.utils.refBrackets[0], 8,
-					imagine.utils.refBrackets[1]
+					imagine.util.refBrackets[0], 5,
+					imagine.util.refBrackets[1], '(',
+					imagine.util.refBrackets[0], 6,
+					imagine.util.refBrackets[1], 'a',
+					imagine.util.refBrackets[0], 7,
+					imagine.util.refBrackets[1], ')',
+					imagine.util.refBrackets[0], 8,
+					imagine.util.refBrackets[1]
 				].join('')
 			var resultingStr = initialStr.replace(/[\(\)]/g, '');
 
 			ok(imagine(initialStr) === resultingStr, "GroupRef escaping: " + initialStr + " populate→ " + resultingStr)
-			ok(new imagine.utils.Expression(initialStr).toString() === initialStr, "GroupRef escaping: " + initialStr + " toString→ " + new imagine.utils.Expression(initialStr).toString())
+			ok(new imagine.util.Expression(initialStr).toString() === initialStr, "GroupRef escaping: " + initialStr + " toString→ " + new imagine.util.Expression(initialStr).toString())
 
-			ok(new imagine.utils.Expression('a(b)c').toString() === "a(b)c", "One symbol parsing: " + "a(b)c →" + new imagine.utils.Expression('a(b)c').toString())
+			ok(new imagine.util.Expression('a(b)c').toString() === "a(b)c", "One symbol parsing: " + "a(b)c →" + new imagine.util.Expression('a(b)c').toString())
 
-			ok(new imagine.utils.Expression('{{ index(1) }}').tokens.length == 2, "Catch zero token double write")
+			ok(new imagine.util.Expression('{{ index(1) }}').tokens.length == 2, "Catch zero token double write")
 		})
 	
 		test("expression correctness", function(){
 			var str = "ab{0,2}c(?:de?f|(hj{1}k|lm[nN]?({{ o }})?{3,}pq|rst?))?uv|[x]{0,2}(y){{z}}\\2{,1}\\1(abc\\td%4ef\\*\\x123)+z?"
-			var expr = new imagine.utils.Expression(str, {o: 1, z: 2});
+			var expr = new imagine.util.Expression(str, {o: 1, z: 2});
 
 			ok (expr.toString().indexOf("") < 0, "Bad symbols handling")
 
@@ -169,14 +169,14 @@
 
 		test("expression trivial populate", function(){
 			var str = "(?:(greg).(semenov)|\\2.\\1)@(gmail|yahoo).com"
-			var expr = new imagine.utils.Expression(str);
+			var expr = new imagine.util.Expression(str);
 
 			var result = expr.populate();
 
 			ok (["greg.semenov@gmail.com","semenov.greg@gmail.com","semenov.greg@yahoo.com","greg.semenov@yahoo.com"].indexOf(result) >= 0, "Populate simple email failed")
 
-			strictEqual(expression(/1/).populate(), "1", "Types")
-			strictEqual(expression(/{{ 1 }}/).populate(), 1, "Types")
+			strictEqual(imagine(/1/), "1", "Types")
+			strictEqual(imagine(/{{ 1 }}/), 1, "Types")
 		})
 
 
@@ -237,8 +237,8 @@
 		});
 
 		test("DataDescriptors", function(){
-			deepEqual(new DataDescriptor({a: /1/, b: /2/}).populate(), {a:'1', b:'2'}, "Object with regexps")
-			strictEqual(new DataDescriptor(function(){return 1}).populate(), 1, "functions")
+			deepEqual(new imagine.util.DataDescriptor({a: /1/, b: /2/}).populate(), {a:'1', b:'2'}, "Object with regexps")
+			strictEqual(new imagine.util.DataDescriptor(function(){return 1}).populate(), 1, "functions")
 		})
 
 
@@ -335,11 +335,12 @@
 			strictEqual(imagine.my_str, 'param%3D1%26anotherParam%3D2', "url encode");			
 			strictEqual(imagine("{{ my_str|url_decode }}"), "param=1&anotherParam=2", "url decode");
 			strictEqual(imagine("{{ '<p>foobar</p>'|striptags }}"), "foobar", "striptags");
-			strictEqual(imagine.sanitize("<html>start\n<script>123<\/script\><object\/\>\nend<\/html\>"), "<html>start\n\nend</html>","sanitize plain" );
+			strictEqual(imagine.filters.sanitize("<html>start\n<script>123<\/script\><object\/\>\nend<\/html\>"), "<html>start\n\nend</html>","sanitize plain" );
 			strictEqual(imagine(/{{"<html>start\n<script>123<\/script\><object\/\>\nend<\/html\>"|sanitize}}/), "<html>start\n\nend</html>","sanitize expression" );
 
 			//numbers
-			strictEqual(imagine)
+			strictEqual(imagine(/{{ 5|min(6) }}/), 6, "min")
+			strictEqual(imagine(/{{ 5|max(4) }}/), 4, "max")
 
 			//other
 			deepEqual(imagine("{{ ''|default(123) }}"), 123, "default string")

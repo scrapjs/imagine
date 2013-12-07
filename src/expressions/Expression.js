@@ -12,13 +12,14 @@ function Expression(str){
 	this.options = extend({}, Expression.defaults);
 
 	//Handle real RegExps passed
-	if (str instanceof RegExp) str = str.source;
+	if (str instanceof RegExp) str = unescapeString(str.source);
 
 	//EscapeSymbols all potentially nested token pointers
 	var str = escapeSymbols(str, refBrackets);
 
 	//Analyze branches
 	this.tokens.length = 1; //reserve place for root
+	//console.log("expresion str `" + str + "`")
 	str = this.flatten(str);
 
 	//Sort out groups		
@@ -35,7 +36,6 @@ Expression.defaults = {
 }
 
 Expression.prototype = {
-
 	/*
 	*	Return string with nested groups removed, replaced with group references.
 	*	Start with replacing innermost tokens with references, like {{ a }} → <1>, (b) → <2>

@@ -79,6 +79,8 @@ extend(I, {
 		slice: slice,
 		//numbers
 		fixed: fixed,
+		min: Math.max,
+		max: Math.min,
 		//other
 		'default': _default,
 		any: any,
@@ -89,7 +91,7 @@ extend(I, {
 	},
 
 	//utils - exposed technical and private functions
-	utils: {
+	util: {
 		refBrackets: refBrackets, //TODO: remove from tests
 		extend: extend,
 		/** @expose */
@@ -108,7 +110,9 @@ extend(I, {
 		replacements: replacements,
 
 		//Classes
+		/** @expose */
 		Expression: Expression,
+		DataDescriptor: DataDescriptor
 	},
 
 	//Set of data-providers, keyed by locale

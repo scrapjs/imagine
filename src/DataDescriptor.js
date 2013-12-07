@@ -124,7 +124,7 @@ DataDescriptor.prototype = {
 	populateModel: function(ctx, model){
 		var result = undefined;
 
-		console.group("populate datadesc with model", model)
+		//console.group("populate datadesc with model", model)
 
 		if (model instanceof Expression){
 			result = model.populate(ctx);
@@ -142,7 +142,7 @@ DataDescriptor.prototype = {
 			result = model;
 		}
 		//console.log("pop result", result)
-		console.groupEnd();
+		//console.groupEnd();
 
 		return result
 	},

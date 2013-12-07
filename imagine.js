@@ -10,8 +10,7 @@ var refBrackets = ["⦅", "⦆"], //["<", ">"]
 	escaper = "\\",
 	unsafeSymbols = "\\{}[]()^?:.+*$,0123456789'\"|trs",
 	stringRE = /(?:'[^']*'|"[^"]*")/g,
-	dataDelimiter = ["{{", "}}"], //delimiters to split data-chunks from string
-	badTags = 'applet base basefont frame frameset head isindex link meta noframes noscript object param script style title'.split( ' ' );
+	dataDelimiter = ["{{", "}}"] //delimiters to split data-chunks from string
 
 
 /*
@@ -85,17 +84,9 @@ function any(arr){
 }
 
 
-
-/*
-* Populates any data passed
-*/
-function populate(obj){
-	var dd = new DataDescriptor(obj);
-	return dd.populate();
-}
-
 //RepeatSequence stubs
 function index(num){
+	console.log("bad index")
 	return num;
 }
 function repeat(){
@@ -118,49 +109,33 @@ function replacements(str, replacements){
 	return str;
 }
 
+
+//cache of expressions
+var expressions = {};
+
 /**
-*	Populate @param string based on regex-like notation mixed with moustache data-insertions.
-*	Examples:
+*	Expressions cacher. Retrieves expression from cache, if any, and if there is none - creates one.
+*	Also can set a context for expression.
 *	"{{ Internet.url }}{2,3}"
 *	"[a-z]{4,5}"
 *	"([1-9][0-9]?)(?:, ${1}){,2}" ⇒ "14", "5" or "2, 12, 45"
 *	""
 *	@return {Expression}
 */
-var expressions = {};
+function expression(str){
+	if (expressions[str]) return expressions[str];
 
-function expression(str, ctx){
-	var expr;
-
-	//cache expression
-	if (!expressions[str]){
-		expr = new Expression(str, ctx);
-		expressions[str] = expr;
-	} else {
-		expr = expressions[str];
-		if (ctx) expr.setContext(ctx);
-	}
-
-	return expr.populate();
+	expressions[str] = new Expression(str);
+	return expressions[str];
 }
 
-/*
-*	strip tags which shouldn’t be involved into the parsing proccess
-*/
-function sanitize(str, tags){
-	var res = str;
-	tags = tags || badTags;
-	for (var i = 0; i < tags.length; i++){
-		var fullTagReStr = ["<", tags[i], "\\b(?:[^](?!<\\/", tags[i] ,"))*[^]<\\/", tags[i], "\\b[^>]*>"].join("");
-		var fullTagRe = new RegExp(fullTagReStr, "ig");
+//cache of call sequences
+var callSequences = {};
+function callSequence(str){
+	if (callSequences[str]) return callSequences[str];
 
-		var shortTagReStr = ["<", tags[i], "[^\\/>]*\\/>"].join("");
-		var shortTagRe = new RegExp(shortTagReStr, "ig");
-		
-		res = res.replace(fullTagRe, '');
-		res = res.replace(shortTagRe, '');
-	}
-	return res
+	callSequences[str] = new CallSequence(str);
+	return callSequences[str];
 }
 
 
@@ -183,6 +158,21 @@ function unescapeSymbols(str, symbols){
 	if (symbols instanceof Array) symbols = symbols.join('');
 	symbols = symbols.replace(/[\[\]\\]/g, "\\$&");
 	return str.replace(new RegExp("\\\\([" + symbols + "])", "g"), "$1");
+}
+
+/*
+* Transforms all stringy synbols like \t, \s, ... to real chars: tab, space etc.
+*/
+function unescapeString(str){
+	str = str.replace(/\\'/g, "'")
+	str = str.replace(/\\"/g, "\"")
+	str = str.replace(/\\t/g, "\t")
+	str = str.replace(/\\b/g, "\b")
+	str = str.replace(/\\n/g, "\n")
+	str = str.replace(/\\r/g, "\r")
+	str = str.replace(/\\f/g, "\f")
+	str = str.replace(/\\([^])/g, "$1");
+	return str;
 }
 
 /*
@@ -260,40 +250,13 @@ function doWithin(str, fn, ll){
 	return result
 }
 
-/*
-* Returns anything fixed to format
-* fixed(123, '00000') === '00123'
-* fixed(123, 2) === '12'
-* fixed(123, 6) === '000123'
-*/
-function fixed(value, format){
-	var value = value.toString();
-	var length =  value.length;
-	if (typeof format === "string"){
-		length = format.length;
-	} else if (typeof format === "number"){
-		length = Math.round(format)
-	}
-
-	if (length > value.length){
-		var l = length - value.length;
-		for (var i = l; i--;){
-			value = "0" + value;
-		}
-	} else {
-		value = value.slice(0, length);
-	}
-
-	return value;
-}
-
 
 
 /*
 * Determines what the param is: string, data object, sequence, json etc
 * Used to be used within datasource, then migrated to globals due to versatility
 */
-function recognizeParam(str, context){
+function recognizeParam(str){
 	//console.log("recognize:", str)
 	var result = undefined;
 	//123.456
@@ -336,7 +299,7 @@ function recognizeParam(str, context){
 		for (var i = 0; i < params.length; i++){
 			//console.log("list param:", params[i])
 			params[i] = unescape(params[i]).trim();
-			result[i] = recognizeParam(params[i], context);
+			result[i] = recognizeParam(params[i]);
 		}
 
 		return result;
@@ -363,7 +326,7 @@ function recognizeParam(str, context){
 				key = key.slice(1, -1);
 			}
 			value = unescape(value);
-			result[key] = recognizeParam(value, context);
+			result[key] = recognizeParam(value);
 		}
 
 		return result;
@@ -372,7 +335,7 @@ function recognizeParam(str, context){
 	//data.['type'](12, 13).maybe.['with_some']['property'].at.last(1, 'abc', [[1], 2])
 	else if (/[a-z_$@]/i.test(str[0])){
 		//Then define calling sequence
-		return new CallSequence(str, context);
+		return callSequence(str);
 	}
 
 	throw new Error("Can not recognize the param `" + str + "`")
@@ -383,7 +346,7 @@ function recognizeParam(str, context){
 * Arguments parser returns list of arguments parsed from comma-separated string
 * Used to be used within CallSequence, then moved out in favour of versatility
 */
-function parseArguments(str, context){
+function parseArguments(str){
 	//console.log("parse arguments:", str)
 	if (str === undefined) return [null];
 
@@ -394,10 +357,284 @@ function parseArguments(str, context){
 	var result = [];
 
 	for (var i = 0; i < args.length; i++){
-		result.push(recognizeParam(unescape(args[i]), context))
+		result.push(recognizeParam(unescape(args[i])))
 	}
 
 	return result;
+}
+	/**
+* Set of filters to use within DataTokens
+* Covers swig filters and django-filters behaviour
+* Easily extandable as Imagine.filters.filter = function(input, params){ return output}
+*/
+
+/*
+* --------------------------- Swigs
+*/
+//arrays
+function _default(what, substitution){
+	if (!what){
+		return substitution
+	} else {
+		return what
+	}
+}
+function sort(arr, reverse){
+	var result = arr.sort();
+	if (reverse){
+		result = arr.reverse();
+	}
+	return result;
+}
+function first(arr){
+	return arr[0]
+}
+function last(arr){
+	return arr[arr.length - 1]
+}
+function join(arr, divider){
+	return arr.join(divider)
+}
+function uniq(arr){
+	var result = [];
+	for (var i = 0; i < arr.length; i++){
+		if (result.indexOf(arr[i]) < 0){
+			result.push(arr[i])
+		}
+	}
+	return result
+}
+function slice(arr, from ,to){
+	return arr.slice(from, to);
+}
+
+//strings
+function titleCase(str){
+	var words = str.split(" ");
+	for (var i = 0; i < words.length; i++){
+		words[i] = capitalize(words[i])
+	}
+	return words.join(" ")
+}
+/**
+* 'abC Dfef' → 'Abc def'
+*/
+function capitalize(str) {
+	return str.toString()[0].toUpperCase() + str.toString().slice(1).toLowerCase();
+}
+/**
+* 'abcdef' →(3, '...')→ 'abc...'
+*/
+function truncatechars(str, len, ending){
+	return str.slice(0, len) + (ending || "")
+}
+/**
+*/
+function _escape(what, how){
+	//TODO
+	switch (how) {
+		case 'js':
+			var result = "";
+			what = what.replace(/\\/g, '\\u005C');
+			for (var i=0; i < what.length; i ++) {
+				var code = what.charCodeAt(i);
+				if (code < 32) {
+					code = code.toString(16).toUpperCase();
+					code = (code.length < 2) ? '0' + code : code;
+					result += '\\u00' + code;
+				} else {
+					result += what[i];
+				}
+			}
+			return result.replace(/&/g, '\\u0026')
+			.replace(/</g, '\\u003C')
+			.replace(/>/g, '\\u003E')
+			.replace(/\'/g, '\\u0027')
+			.replace(/"/g, '\\u0022')
+			.replace(/\=/g, '\\u003D')
+			.replace(/-/g, '\\u002D')
+			.replace(/;/g, '\\u003B');
+		default:
+			return what.replace(/&(?!amp;|lt;|gt;|quot;|#39;)/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
+	}
+}
+function upper(str){
+	return str.toUpperCase();
+}
+function lower(str){
+	return str.toLowerCase();
+}
+function replace(str, search, replacement, flags){
+	var r = new RegExp(search, flags);
+	return str.replace(r, replacement);
+}
+function striptags(str){
+	return str.replace(/<[^>]+>/g, "")
+}
+var badTags = 'applet base basefont frame frameset head isindex link meta noframes noscript object param script style title'.split( ' ' );
+function sanitize(str, tags){
+	var res = str;
+	tags = tags || badTags;
+	//console.log("sanitize", str)
+	for (var i = 0; i < tags.length; i++){
+		var fullTagReStr = ["<", tags[i], "\\b(?:[^](?!<\\/", tags[i] ,"))*[^]<\\/", tags[i], "\\b[^>]*>"].join("");
+		var fullTagRe = new RegExp(fullTagReStr, "ig");
+
+		//console.log(fullTagReStr)
+
+		var shortTagReStr = ["<", tags[i], "[^\\/>]*\\/>"].join("");
+		var shortTagRe = new RegExp(shortTagReStr, "ig");
+		
+		res = res.replace(fullTagRe, '');
+		res = res.replace(shortTagRe, '');
+	}
+	//console.log("sanitize res", res)
+	return res
+}
+
+
+//numbers
+/*
+* Returns anything fixed to format
+* fixed(123, '00000') === '00123'
+* fixed(123, 2) === '12'
+* fixed(123, 6) === '000123'
+*/
+function fixed(value, format){
+	var value = value.toString();
+	var length =  value.length;
+	if (typeof format === "string"){
+		length = format.length;
+	} else if (typeof format === "number"){
+		length = Math.round(format)
+	}
+
+	if (length > value.length){
+		var l = length - value.length;
+		for (var i = l; i--;){
+			value = "0" + value;
+		}
+	} else {
+		value = value.slice(0, length);
+	}
+
+	return value;
+}
+
+
+
+//TODOs
+function date(){
+
+}
+function safe(x){
+	return x;
+}
+/*
+*{{ a|slugify }}
+*/
+//Useful to transcribe foreign names like Дима → Dima
+function slugify(input){
+	var output = input.toLowerCase();
+	output = output.replace(/ /g, "-");
+
+	//TODO: i18d slugification hook
+	//Or maybe just map transcriptions map?
+
+	return output;
+}
+//{{ a|where a.gender == plural and a.face == }}
+
+/*
+* --------------------- Djangoes
+*/
+function add(augent, addent){
+	return augent + addent
+}
+function addslashes(str){
+	return escapeSymbols(str, "'\"\\")
+}
+function cut(str, value){
+	return str.replace(new RegExp(value, "g"), "");
+}
+	/*
+* Stuff mostly implementing JSON-generator functions
+* 
+*/
+//TODO: think up something better than just a list of json-generator stuff.
+//
+
+
+//JSON-generator ones
+//TODO: think up guid and index
+function numeric(a, b, format){
+
+}
+
+
+function firstName(gender){
+
+}
+
+function surname(){
+
+}
+
+function gender(){
+
+}
+
+function company(){
+
+}
+
+function phone(mask){
+
+}
+
+function email(random){
+
+}
+
+function countriesList(){
+
+}
+
+function country(){
+
+}
+
+function state(){
+
+}
+
+function city(){
+
+}
+
+function street(){
+
+}
+
+function date(format){
+
+}
+
+function lorem(count, units){
+	switch (units){
+		case "words":
+			break;
+		case "sentences":
+			break;
+		case "paragraphs":
+			break;
+		default: //chars
+			break;
+	}
 }
 	/*
 *	How's project called
@@ -405,15 +642,90 @@ function parseArguments(str, context){
 var projectName = "imagine";
 
 /*
-* Main keeper object - singleton
-* External methods & default context
+* Main function - handles any param passed
 */
-var I = {
-	//settings
-	locale: 'en_EN',
+var I = function(argument, ctx){
+	if (typeof argument === "string" || argument instanceof RegExp){
+		var exp = expression(argument);
+		return exp.populate(ctx);
+	} else if (argument instanceof Array){
+		var repeatExp = new RepeatExpression(argument)
+		return repeatExp.populate(ctx);
+	} else {
+		var dd = new DataDescriptor(argument);
+		return dd.populate(ctx);
+	}
+}
 
-	//utils - exposed private functions
-	utils: {
+/**
+* Main keeper object
+*/
+extend(I, {
+	//settings
+	options:{
+		locale: 'en'
+	},
+
+	//API - primitives and everything that fits to a language construction imagine.something
+	/** @expose */
+	any: any,
+	/** @expose */
+	int: int,
+	/** @expose */
+	float: float,
+	/** @expose */
+	number: number,
+	/** @expose */
+	bool: bool,
+	/** @expose */
+	none: none,
+	/** @expose */
+	index: index,
+	/** @expose */
+	repeat: repeat,
+
+
+	//Extendable filters set
+	/** @expose */
+	filters: {
+		//string
+		capitalize: capitalize,
+		capfirst: capitalize,
+		truncatechars: truncatechars,
+		escape: _escape,
+		e: _escape,
+		uppper: upper,
+		lower: lower,
+		url_encode: escape,
+		url_decode: unescape,
+		striptags: striptags,
+		sanitize: sanitize,
+		//arrays
+		sort: sort,
+		reverse: reverse,
+		first: first,
+		last: last,
+		uniq: uniq,
+		join: join,
+		title: titleCase,
+		addslashes: addslashes,
+		replace: replace,
+		slice: slice,
+		//numbers
+		fixed: fixed,
+		min: Math.max,
+		max: Math.min,
+		//other
+		'default': _default,
+		any: any,
+		random: any,
+		//djangos
+		add: add,
+		cut: cut
+	},
+
+	//utils - exposed technical and private functions
+	util: {
 		refBrackets: refBrackets, //TODO: remove from tests
 		extend: extend,
 		/** @expose */
@@ -426,44 +738,20 @@ var I = {
 		unescapeSymbols: unescapeSymbols,
 		/** @expose */
 		parseArguments: parseArguments,
+		/** @expose */
+		expression: expression,
+		/** @expose */
+		replacements: replacements,
+
+		//Classes
+		/** @expose */
+		Expression: Expression,
+		DataDescriptor: DataDescriptor
 	},
 
-	//API - data-functions
-	/** @expose */
-	any: any,
-	/** @expose */
-	int: int,
-	/** @expose */
-	float: float,
-	/** @expose */
-	number: number,
-	/** @expose */
-	bool: bool,
-	/** @expose */
-	replacements: replacements,
-	/** @expose */
-	expression: expression,
-	/** @expose */
-	none: none,
-	/** @expose */
-	populate: populate,
-	/** @expose */
-	fixed: fixed,
-	/** @expose */
-	index: index,
-	/** @expose */
-	repeat: repeat,
-	/** @expose */
-	sanitize: sanitize,
-
-	//Extendable filters set
-	/** @expose */
-	filters: {},
-
-	//Classes
-	Expression: Expression
-
-};
+	//Set of data-providers, keyed by locale
+	//providers: {}
+});
 
 
 //Make global
@@ -474,23 +762,22 @@ window[projectName] = I;
 *	@constructor
 *	@expose
 */
-function Expression(str, context){
+function Expression(str){
 	this.tokens = [];//dict of tokens
 	this.groups = [];//ordered groups to get access by reference, as usually in regexps
+	//console.log("new Expression", str)
 
 	this.options = extend({}, Expression.defaults);
 
-	//define actual context
-	this.context = context;
-
 	//Handle real RegExps passed
-	if (str instanceof RegExp) str = str.source;
+	if (str instanceof RegExp) str = unescapeString(str.source);
 
 	//EscapeSymbols all potentially nested token pointers
 	var str = escapeSymbols(str, refBrackets);
 
 	//Analyze branches
 	this.tokens.length = 1; //reserve place for root
+	//console.log("expresion str `" + str + "`")
 	str = this.flatten(str);
 
 	//Sort out groups		
@@ -507,17 +794,6 @@ Expression.defaults = {
 }
 
 Expression.prototype = {
-
-	/*
-	* Overrides current ctx
-	*/
-	setContext: function(ctx){
-		this.context = ctx;
-	},
-	getContext: function(ctx){
-		return this.context;
-	},
-
 	/*
 	*	Return string with nested groups removed, replaced with group references.
 	*	Start with replacing innermost tokens with references, like {{ a }} → <1>, (b) → <2>
@@ -598,9 +874,11 @@ Expression.prototype = {
 	*	Gets generated instance based on this expression
 	* @expose
 	*/
-	populate: function(){
-		//console.group("populate expression:", this)
-		var result = this.tokens[0].populate();
+	populate: function(ctx){
+		var context = ctx || I;
+
+		//console.group("populate expression:", context)
+		var result = this.tokens[0].populate(context);
 		//console.log("pop type", result)
 		//console.groupEnd();
 		if (typeof result === "string"){
@@ -666,7 +944,7 @@ Token.prototype = {
 	/*
 		Main renderer - tries to eval the structure. Returns random model
 	*/
-	populate: function(){
+	populate: function(ctx){
 		
 	},
 
@@ -875,7 +1153,7 @@ extend(GroupToken.prototype, Token.prototype, {
 		return result
 	},
 
-	populate: function(multiplier){
+	populate: function(ctx, multiplier){
 		//TODO: think up how to populate real types for instances, containing only data, like "{{ true }}"
 
 		var result = "",
@@ -885,11 +1163,11 @@ extend(GroupToken.prototype, Token.prototype, {
 		var seq = any(this.alternatives);
 
 		if (times === 1 && seq.length === 1){
-			return seq[0].populate();
+			return seq[0].populate(ctx);
 		} else {
 			for (var i = 0; i < times; i++){
 				for (var j = 0; j < seq.length; j++){
-					result += seq[j].populate();
+					result += seq[j].populate(ctx);
 				}
 			}
 		}
@@ -923,11 +1201,11 @@ extend(GroupRefToken.prototype, Token.prototype, {
 		}
 	},
 
-	populate: function(){
+	populate: function(ctx){
 		var times = int(this.multiplier[0], this.multiplier[1], true);
 		var result = "";
 		for (var i = 0; i < times; i++){
-			result += this.expression.groups[this.groupId].populate([1,1]);
+			result += this.expression.groups[this.groupId].populate(ctx, [1,1]);
 		}
 
 		return result;
@@ -951,7 +1229,7 @@ extend(StringToken.prototype, Token.prototype, {
 		}
 	},
 
-	populate: function(multiplier){
+	populate: function(ctx, multiplier){
 		var m = multiplier || this.multiplier,
 			result = "",
 			times = int(m[0], m[1]);
@@ -1003,12 +1281,12 @@ extend(DataToken.prototype, Token.prototype, {
 		var filters = sequence.slice(1);
 
 		//Set up vital variables: source
-		this.source = recognizeParam(source, this.expression.context);
+		this.source = recognizeParam(source);
 
 		//And list of filter callers
 		this.filters = [];
 		for (var i = 0; i < filters.length; i++){
-			this.filters.push(new Filter(unescape(filters[i]), this.expression.context))
+			this.filters.push(new Filter(unescape(filters[i])))
 		}
 
 		//console.log("Datatoken source: ", this.source)
@@ -1032,9 +1310,9 @@ extend(DataToken.prototype, Token.prototype, {
 		}
 	},
 
-	populate: function(multiplier){
-		//console.group("populate datatoken:", this.toString(), " with context", this.context)
-		var result = "",
+	populate: function(ctx, multiplier){
+		//console.group("populate datatoken:", this.toString(), " with context", ctx)
+		var result,
 			m = multiplier || this.multiplier,
 			times = int(m[0], m[1], true);
 
@@ -1051,11 +1329,12 @@ extend(DataToken.prototype, Token.prototype, {
 
 		//TODO: apply context to the call of function, if it is 
 		if (times === 1){
+			result = this.getData(ctx);
 			//console.groupEnd();
-			return this.getData();
+			return result;
 		} else {
 			for (var i = 0; i < times; i++){
-				result += this.getData();
+				result += this.getData(ctx);
 			}
 		}
 
@@ -1065,21 +1344,21 @@ extend(DataToken.prototype, Token.prototype, {
 		return result;
 	},
 
-
-	getData: function(){
+	getData: function(ctx){
 		var src = undefined,
 			result;
 		//Makes initial source
-		//console.log("getdata:", this.source)
+		//console.group("data token getdata:", this.source, "with ctx", ctx)
 		if (this.source instanceof CallSequence) {
-			result = this.source.makeCall();
+			result = this.source.makeCall(ctx);
 		} else {
 			result = this.source;
 		}
+		//console.groupEnd()
 
 		//Goes through all filters registered, does CallSequence calls, if needed
 		for (var i = 0; i < this.filters.length; i++){
-			result = this.filters[i].process(result);
+			result = this.filters[i].process(result, ctx);
 		}
 
 		return result;
@@ -1119,7 +1398,7 @@ extend(AnyToken.prototype, Token.prototype, {
 		this.alternatives = str;
 	},
 
-	populate: function(multiplier){
+	populate: function(ctx, multiplier){
 		var m = multiplier || this.multiplier,
 			result = "",
 			times = int(m[0], m[1], true);
@@ -1148,18 +1427,16 @@ extend(AnyToken.prototype, Token.prototype, {
 * E.g. `.some['property']('to', ['call'], { with: 'params'})[1][2].[3]`
 * It will make all necessary calls to obtain the most recent result
 *
+* Called within expressions only
 * @constructor
 */
-function CallSequence(str, context){
+function CallSequence(str){
 	if (!str) return undefined;
 
-	//console.group("callsequence", str)
-
-	this.context = context || extend({}, I);
+	//console.group("callsequence", str, expression)
 
 	this.chunkNames = [];
 	this.chunkArguments = [];
-	this.chunkTarget = undefined; //Target is only first chunk.
 
 	//Parse chunks
 	//.name(args)
@@ -1179,12 +1456,7 @@ function CallSequence(str, context){
 	}
 
 	this.chunkNames.push(unescape(match[1]));
-	this.chunkArguments.push(parseArguments(unescape(match[2]), this.context));
-
-	this.chunkTarget = this.context[this.chunkNames[0]];
-	if (this.chunkTarget === undefined) this.chunkTarget = I[this.chunkNames[0]];
-
-	if (this.chunkTarget === undefined) console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", this.context)
+	this.chunkArguments.push(parseArguments(unescape(match[2])));
 
 	str = str.replace(match[0], "");
 
@@ -1199,7 +1471,7 @@ function CallSequence(str, context){
 	while ((match = str.match(this.plainChunkRE) || str.match(this.keyChunkRE)) && c){
 		//console.log("chunk", match)
 		this.chunkNames.push(unescape(match[1]));
-		this.chunkArguments.push(parseArguments(unescape(match[2]), this.context));
+		this.chunkArguments.push(parseArguments(unescape(match[2])));
 		str = str.replace(match[0], "");
 		c--;
 	}
@@ -1213,31 +1485,40 @@ CallSequence.prototype = {
 	keyChunkRE: /^\[['"]((?:[^](?!['"]))+[^]|[^])['"]\][ ]?(?:\([^\)]*\))?\.?/i,
 	//indexChunkRE: /^/i,
 
-
 	/*
 	* Invokes sequence
 	*/
-	makeCall: function(){
-		//console.log("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", this.context && this.context)
+	makeCall: function(ctx){
+		var context = ctx || I;
+		//console.group("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", ctx)
 
-		if (this.chunkTarget === undefined) return undefined;
+		var chunkTarget = context[this.chunkNames[0]];
+		if (chunkTarget === undefined) chunkTarget = I[this.chunkNames[0]];
+		if (chunkTarget === undefined) {
+			console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", context)
+			//console.groupEnd();
+			return undefined;
+		}
 
-		if (typeof this.chunkTarget === "function"){
-			var tmpValue = this.chunkTarget.apply(this.context, this.getArgumentsData(this.chunkArguments[0]));
+		if (typeof chunkTarget === "function"){
+			var tmpValue = chunkTarget.apply(context, this.getArgumentsData(this.chunkArguments[0], context));
+			//console.log("callseq result", tmpValue)
 		} else {
 			//TODO: what else value callsequence may possess? If it is object - probably I should eval it with data? No?
-			return this.chunkTarget;
+			//console.groupEnd();
+			return chunkTarget;
 		}
 
 		//Go by chunks
 		for (var i = 1; i < this.chunkNames.length; i++){
 			if (typeof tmpValue[this.chunkNames[i]] === "function"){
-				var args = this.getArgumentsData(this.chunkArguments[i]);
-				tmpValue = tmpValue[this.chunkNames[i]].apply(this.context, args);
+				var args = this.getArgumentsData(this.chunkArguments[i], context);
+				tmpValue = tmpValue[this.chunkNames[i]].apply(context, args);
 			} else {
 				tmpValue = tmpValue[this.chunkNames[i]]
 			}
 		}
+		//console.groupEnd();
 
 		return tmpValue;
 	},
@@ -1245,14 +1526,14 @@ CallSequence.prototype = {
 	/*
 	* Obtains real data by calling arguments
 	*/
-	getArgumentsData: function(args){
+	getArgumentsData: function(args, ctx){
 		if (!args) return undefined;
 
 		var argsData = [];
 		for (var i = 0; i < args.length; i++){
 			//supposed that each argument is whether plain type or callsequence
 			if (args[i] instanceof CallSequence) {
-				argsData.push(args[i].makeCall());
+				argsData.push(args[i].makeCall(ctx));
 			} else {
 				argsData.push(args[i]);
 			}			
@@ -1266,16 +1547,15 @@ CallSequence.prototype = {
 * Used to call filter with special params in runtime
 * @constructor
 */
-function Filter(str, context){
+function Filter(str){
 	//console.group("filter", str)
-	this.context = extend({}, I, context);
 
 	var firstBrace = str.indexOf("(");
 
 	if (firstBrace > 0){
 		this.name = str.slice(0, firstBrace).trim();
 		//console.log(str)
-		this.params = parseArguments(str.slice(firstBrace).slice(1,-1), this.context);
+		this.params = parseArguments(str.slice(firstBrace).slice(1,-1));
 	} else{
 		this.name = str.trim();
 	}
@@ -1294,22 +1574,22 @@ Filter.prototype = {
 	/*
 	* Main handler: applies filter to the src passed with filtering function fn
 	*/
-	process: function(src){
+	process: function(src, ctx){
 		//console.log("filter process:", src)
-		return this.fn.apply(this, [src].concat(this.getParams()));
+		return this.fn.apply(this, [src].concat(this.getParams(ctx)));
 	},
 
 	/*
 	* Obtains real parameters values
 	* As far as params can include DataSources to call, it has to be called first in order to get real data
 	*/
-	getParams: function(){
+	getParams: function(ctx){
 		if (!this.params) return undefined;
 
 		var result = [];
 		for (var i = 0; i < this.params.length; i++){
 			if (this.params[i] instanceof CallSequence) {
-				result.push(this.params[i].makeCall());
+				result.push(this.params[i].makeCall(ctx));
 			} else {
 				result.push(this.params[i]);
 			}
@@ -1322,18 +1602,16 @@ Filter.prototype = {
 * Wrapper over expression no comprehend things like ["{{ repeat }}", ...things]
 * @constructor
 */
-function RepeatExpression(arr, context){
+function RepeatExpression(arr){
 
-	this.context = {
-		repeat: this.repeat,
-		index: this.index
+	this.repeatContext = {
+		repeat: this.repeat
 	};
-
-	//context for subjects
-	this.nestedContext = context || extend({}, I);
-	this.nestedContext.index = this.index;
-	this.nestedContext.context = this.context;
-	this.context.nestedContext = this.nestedContext;
+	//context for every subject called
+	this.subjectContext = extend({}, I, {
+		lastIndex: undefined,
+		index: this.index
+	});
 
 	//match if first item is `{{ repeat }}` statement
 	var repeatMatch, restArgs, repeatStr;
@@ -1347,18 +1625,20 @@ function RepeatExpression(arr, context){
 	//eval subjects
 	this.subjects = []
 	for (var i = 0; i < restArgs.length; i++){
-		this.subjects.push(new DataDescriptor(restArgs[i], this.nestedContext))
+		this.subjects.push(new DataDescriptor(restArgs[i]))
 	}
 
 	//if it was a plain array, repeat as many times as subjects is there
 	if (!repeatStr) repeatStr = '{{ repeat(' + this.subjects.length + ') }}';
 
-	this.context.subjects = this.subjects;
+	this.repeatContext.subjects = this.subjects;
+	this.repeatContext.subjectContext = this.subjectContext;
 
 	//own repeat expression
-	this.repeatEx = new Expression(repeatStr, this.context)
+	this.repeatEx = expression(repeatStr)
 
-	//console.log("repeatex", this.context)
+	//console.log("repeatex", this.subjects)
+	//NOTE: there everything is ok, shit happens on call
 }
 
 RepeatExpression.prototype = {
@@ -1372,13 +1652,12 @@ RepeatExpression.prototype = {
 	*/
 	//TODO: repeat with no context returns undefined. Always
 	repeat: function(a, b, c){
+		//console.group("repeatcall with ctx", this)
 
 		if (!this.subjects || this.subjects.length === undefined) return undefined
 
-		//console.group("repeatcall", this)
-
+		//define how many times to repeat
 		var min = 1, max = 1, randomly = false;
-		//repeat()
 		if ((b === undefined || b === true || b === false) && a !== undefined){
 			max = a;
 			min = a;
@@ -1390,33 +1669,31 @@ RepeatExpression.prototype = {
 		}
 
 
-		//define repeat context
-		var lastIndex= undefined,
-			times = int(min, max)
+		//define subjects context
+		var times = int(min, max);
 
-		//Make repeat sequence (resulting populated list)
+		this.subjectContext.lastIndex = undefined;
+
+		//Fill results list
 		var resultList = [], length = this.subjects.length || 1;
 		
 		for (var i = 0; i < times; i++){
 
 			var subject = randomly ? any(this.subjects) : this.subjects[i % length];
-			//console.group("repeat iteration", lastIndex, subject)
+			//console.group("repeat iteration", this.subjectContext.lastIndex, subject)
 
-			if (subject && subject.context){
-					subject.context.lastIndex = lastIndex;
-					
-					resultList.push(subject.populate());
+			if (subject){
+				resultList.push(subject.populate(this.subjectContext));
 
 				//if index function has changed last index, increment from the new value
-				if (subject.context.lastIndex !== undefined) {
-					if (lastIndex === undefined) lastIndex = subject.context.lastIndex 
-					lastIndex++;
+				if (this.subjectContext.lastIndex !== undefined) {
+					this.subjectContext.lastIndex++;
 				}
-				//console.log("idx after populate", subject.context.lastIndex)
+				//console.log("idx after populate", this.subjectContext.lastIndex)
 			} else {
 				//weird case when non-data-descriptor
 				resultList.push(subject);
-				console.log("wrong num")
+				//console.log("wrong num")
 			}
 			//console.groupEnd();
 		}
@@ -1437,8 +1714,11 @@ RepeatExpression.prototype = {
 		return this.lastIndex;
 	},
 
-	populate: function(){
-		return this.repeatEx.populate();
+	populate: function(ctx){
+		//console.group("populate repeatex", this.subjects)
+		var result = this.repeatEx.populate(this.repeatContext);
+		//console.groupEnd();
+		return result;
 	}	
 }
 	/*
@@ -1471,16 +1751,14 @@ new DataDescriptor({
 /**
 * @constructor
 */
-function DataDescriptor(src, context) {
+function DataDescriptor(src) {
 	//context to keep tacidly data related with populating expressions
-	this.context = context || extend({}, I, {
-		populate: this.populate
-	});
 
-	this.model = this.recognize(src, this.context);
+	this.model = this.recognize(src);
 
-		this.stop = 0;
+	this.stop = 0;
 	//console.log("new dd", this.model)
+	//TODO: these new data descriptors are not apprehended by repeatEx
 }
 
 
@@ -1520,12 +1798,12 @@ DataDescriptor.prototype = {
 	recognize: function(src){
 		//if list is passed - use it as a basis
 		if (src instanceof Array){
-			return new RepeatExpression(src, this.context);
+			return new RepeatExpression(src);
 		}
 
 		//if string passed - parse data-descriptor from it and init model
-		else if (typeof src === "string"){
-			return new Expression(src, this.context);
+		else if (typeof src === "string" || src instanceof RegExp ){
+			return expression(src);
 		}
 
 		//if simple object is passed - make a list from it
@@ -1543,7 +1821,7 @@ DataDescriptor.prototype = {
 	* If descriptor of format {obj}
 	*/
 	recognizeObject: function(descriptor){
-		if (!descriptor) return descriptor;
+		if (!descriptor || typeof descriptor === "function") return descriptor;
 
 		var result = {};
 
@@ -1555,33 +1833,34 @@ DataDescriptor.prototype = {
 		return result;
 	},
 
-	/*
-	*	Known data-types populators
+	/**
+	* External method
+	* @expose
 	*/
-	populate: function(model){ //TODO: if undefined passed deliberately
-
+	populate: function(ctx){ //TODO: if undefined passed deliberately
+		var context = ctx || I;
+		return this.populateModel(context, this.model);
+	},
+	/**
+	* Private populator of model
+	*/
+	populateModel: function(ctx, model){
 		var result = undefined;
 
-		if (arguments.length == 0){
-			var model = this.model;
-		} else {
-			var model = model;
-		}
-		//console.group("populate datadesc", model)
-
+		//console.group("populate datadesc with model", model)
 
 		if (model instanceof Expression){
-			result = model.populate();
+			result = model.populate(ctx);
 		} else if (model instanceof DataDescriptor){
-			result = model.populate();
+			result = model.populate(ctx);
 		} else if (model instanceof RepeatExpression){
-			result = model.populate();
+			result = model.populate(ctx);
 		} else if (model instanceof Object){
 			if (this.stop >= 19){
 				console.error("Too big depth of population. Reassert your DataDescriptor")
 				return undefined;
 			}
-			result = this.populateObject(model);
+			result = this.populateObject(ctx, model);
 		} else {
 			result = model;
 		}
@@ -1590,13 +1869,18 @@ DataDescriptor.prototype = {
 
 		return result
 	},
-	populateObject: function(obj){
+	populateObject: function(ctx, obj){
+		if (typeof obj === "function"){
+			//TODO: think about passing a param to function
+			return obj.apply(ctx);
+		}
+
 		var result = {};
 		this.stop += 1;
 		for (var key in obj){
 			//console.group("populate object key: `" + key+ "`", obj[key], "result:", result)
 			//result[key] = obj[key]
-			result[key] = this.populate(obj[key]);
+			result[key] = this.populateModel(ctx, obj[key]);
 			//console.log("populated obj key `" + key + "` result:", result)
 			//console.groupEnd();
 		}
@@ -1604,231 +1888,6 @@ DataDescriptor.prototype = {
 		return result
 	}
 }
-	/**
-* Set of filters to use within DataTokens
-* Covers swig filters and django-filters behaviour
-* Easily extandable as Imagine.filters.filter = function(input, params){ return output}
-*/
-
-extend(I.filters, {
-	//strings
-	capitalize: capitalize,
-	capfirst: capitalize,
-	truncatechars: truncatechars,
-	escape: _escape,
-	e: _escape,
-	uppper: upper,
-	lower: lower,
-	url_encode: escape,
-	url_decode: unescape,
-	striptags: striptags,
-
-	//arrays
-	sort: sort,
-	reverse: reverse,
-	first: first,
-	last: last,
-	uniq: uniq,
-	join: join,
-	title: titleCase,
-	addslashes: addslashes,
-	replace: replace,
-
-	//other
-	'default': _default,
-	any: any,
-	random: any,
-
-	//djangos
-	add: add,
-	cut: cut
-})
-
-/*
-* --------------------------- Swigs
-*/
-function _default(what, substitution){
-	if (!what){
-		return substitution
-	} else {
-		return what
-	}
-}
-function sort(arr, reverse){
-	var result = arr.sort();
-	if (reverse){
-		result = arr.reverse();
-	}
-	return result;
-}
-function first(arr){
-	return arr[0]
-}
-function last(arr){
-	return arr[arr.length - 1]
-}
-function join(arr, divider){
-	return arr.join(divider)
-}
-function uniq(arr){
-	var result = [];
-	for (var i = 0; i < arr.length; i++){
-		if (result.indexOf(arr[i]) < 0){
-			result.push(arr[i])
-		}
-	}
-	return result
-}
-
-//strings
-function titleCase(str){
-	var words = str.split(" ");
-	for (var i = 0; i < words.length; i++){
-		words[i] = capitalize(words[i])
-	}
-	return words.join(" ")
-}
-/**
-* 'abC Dfef' → 'Abc def'
-*/
-function capitalize(str) {
-	return str.toString()[0].toUpperCase() + str.toString().slice(1).toLowerCase();
-}
-/**
-* 'abcdef' →(3, '...')→ 'abc...'
-*/
-function truncatechars(str, len, ending){
-	return str.slice(0, len) + (ending || "")
-}
-/**
-*/
-function _escape(what, how){
-	//TODO
-	switch (how) {
-		case 'js':
-			var result = "";
-			what = what.replace(/\\/g, '\\u005C');
-			for (var i=0; i < what.length; i ++) {
-				var code = what.charCodeAt(i);
-				if (code < 32) {
-					code = code.toString(16).toUpperCase();
-					code = (code.length < 2) ? '0' + code : code;
-					result += '\\u00' + code;
-				} else {
-					result += what[i];
-				}
-			}
-			return result.replace(/&/g, '\\u0026')
-			.replace(/</g, '\\u003C')
-			.replace(/>/g, '\\u003E')
-			.replace(/\'/g, '\\u0027')
-			.replace(/"/g, '\\u0022')
-			.replace(/\=/g, '\\u003D')
-			.replace(/-/g, '\\u002D')
-			.replace(/;/g, '\\u003B');
-		default:
-			return what.replace(/&(?!amp;|lt;|gt;|quot;|#39;)/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#39;');
-	}
-}
-function upper(str){
-	return str.toUpperCase();
-}
-function lower(str){
-	return str.toLowerCase();
-}
-function replace(str, search, replacement, flags){
-	var r = new RegExp(search, flags);
-	return str.replace(r, replacement);
-}
-function striptags(str){
-	return str.replace(/<[^>]+>/g, "")
-}
-
-
-//TODOs
-function date(){
-
-}
-function safe(){
-
-}
-
-/*
-* --------------------- Djangoes
-*/
-function add(augent, addent){
-	return augent + addent
-}
-function addslashes(str){
-	return escapeSymbols(str, "'\"\\")
-}
-function cut(str, value){
-	return str.replace(new RegExp(value, "g"), "");
-}
-	/*
-* Stuff mostly implementing JSON-generator functions
-*/
-extend(I, {
-
-	//JSON-generator ones
-	//TODO: think up guid and index
-	numeric: function(a, b, format){
-
-	},
-
-	firstName: function(gender){
-
-	},
-	surname: function(){
-
-	},
-	gender: function(){
-
-	},
-	company: function(){
-
-	},
-	phone: function(mask){
-
-	},
-	email: function(random){
-
-	},
-	countriesList: function(){
-
-	},
-	country: function(){
-
-	},
-	state: function(){
-
-	},
-	city: function(){
-
-	},
-	street: function(){
-
-	},
-	date: function(format){
-
-	},
-	lorem: function(count, units){
-		switch (units){
-			case "words":
-				break;
-			case "sentences":
-				break;
-			case "paragraphs":
-				break;
-			default: //chars
-				break;
-		}
-	},
-});
 
 
 })();

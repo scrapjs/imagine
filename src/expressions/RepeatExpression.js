@@ -37,7 +37,7 @@ function RepeatExpression(arr){
 	//own repeat expression
 	this.repeatEx = expression(repeatStr)
 
-	console.log("repeatex", this.subjects)
+	//console.log("repeatex", this.subjects)
 	//NOTE: there everything is ok, shit happens on call
 }
 
@@ -52,7 +52,7 @@ RepeatExpression.prototype = {
 	*/
 	//TODO: repeat with no context returns undefined. Always
 	repeat: function(a, b, c){
-		console.group("repeatcall with ctx", this)
+		//console.group("repeatcall with ctx", this)
 
 		if (!this.subjects || this.subjects.length === undefined) return undefined
 
@@ -80,7 +80,7 @@ RepeatExpression.prototype = {
 		for (var i = 0; i < times; i++){
 
 			var subject = randomly ? any(this.subjects) : this.subjects[i % length];
-			console.group("repeat iteration", this.subjectContext.lastIndex, subject)
+			//console.group("repeat iteration", this.subjectContext.lastIndex, subject)
 
 			if (subject){
 				resultList.push(subject.populate(this.subjectContext));
@@ -89,15 +89,15 @@ RepeatExpression.prototype = {
 				if (this.subjectContext.lastIndex !== undefined) {
 					this.subjectContext.lastIndex++;
 				}
-				console.log("idx after populate", this.subjectContext.lastIndex)
+				//console.log("idx after populate", this.subjectContext.lastIndex)
 			} else {
 				//weird case when non-data-descriptor
 				resultList.push(subject);
-				console.log("wrong num")
+				//console.log("wrong num")
 			}
-			console.groupEnd();
+			//console.groupEnd();
 		}
-		console.groupEnd();
+		//console.groupEnd();
 
 		return resultList
 	},
@@ -110,14 +110,14 @@ RepeatExpression.prototype = {
 		if (this.lastIndex === undefined) {
 			this.lastIndex = from || 0;
 		}
-		console.log("index fn", this.lastIndex)
+		//console.log("index fn", this.lastIndex)
 		return this.lastIndex;
 	},
 
 	populate: function(ctx){
-		console.group("populate repeatex", this.subjects)
+		//console.group("populate repeatex", this.subjects)
 		var result = this.repeatEx.populate(this.repeatContext);
-		console.groupEnd();
+		//console.groupEnd();
 		return result;
 	}	
 }
