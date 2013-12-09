@@ -9,7 +9,7 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
 	
-	<script src="../src/Imagine.js"></script>
+	<!--<script src="../src/Imagine.js"></script>
 	<script src="../src/util.js"></script>
 	<script src="../src/filters.js"></script>
 	<script src="../src/primitives.js"></script>
@@ -29,10 +29,10 @@
 	<script src="../providers/Numbers.js"></script>
 	<script src="../providers/Network.js"></script>
 
-	<script src="../src/API.js"></script>
+	<script src="../src/API.js"></script>-->
 
 	
-	<!--<script src="../imagine.min.js"></script>-->
+	<script src="../imagine.js"></script>
 
 	<!-- extra stuff -->
 	<!--<script src="../providers/russian/Language.js"></script>-->
@@ -167,7 +167,7 @@
 				1,
 				"Nested params as arg: /{{ none(a.b) }}/ with ctx {a: { b: 1}} === 1");
 
-			deepEqual(new Expression(/{{ a.b }}/).populate({a: { b: 1}}), 1, "Nested params plain: /{{ a.b }}/")
+			deepEqual(new imagine.util.Expression(/{{ a.b }}/).populate({a: { b: 1}}), 1, "Nested params plain: /{{ a.b }}/")
 
 			ok(!isNaN(imagine({
 						val: /{{ float( request.yl ,  request.yr ) }}/
