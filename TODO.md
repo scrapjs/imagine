@@ -36,4 +36,11 @@ E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") 
 
 * Do morphological module
 
-* Do async: imagine.get, imagine.ajax, imagine.request
+* Do async: imagine.get, imagine.ajax, ...
+	* Test passing an data to the response context, and eval that data, like ajax({data:{ view:/map|list/ }}), in order to generate response really based on data passed to request
+	* Test deferred data filtering through chain
+	* Test on promise object returned within populate
+	
+
+* Do not forget about tagTokens
+

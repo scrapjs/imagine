@@ -66,13 +66,13 @@ CallSequence.prototype = {
 	*/
 	makeCall: function(ctx){
 		var context = ctx || I;
-		//console.group("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", ctx)
+		console.group("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", ctx)
 
 		var chunkTarget = context[this.chunkNames[0]];
 		if (chunkTarget === undefined) chunkTarget = I[this.chunkNames[0]];
 		if (chunkTarget === undefined) {
 			console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", context)
-			//console.groupEnd();
+			console.groupEnd();
 			return undefined;
 		}
 
@@ -81,8 +81,8 @@ CallSequence.prototype = {
 			//console.log("callseq result", tmpValue)
 		} else {
 			//TODO: what else value callsequence may possess? If it is object - probably I should eval it with data? No?
-			//console.groupEnd();
-			return chunkTarget;
+			console.groupEnd();
+			var tmpValue = chunkTarget;
 		}
 
 		//Go by chunks
@@ -94,7 +94,7 @@ CallSequence.prototype = {
 				tmpValue = tmpValue[this.chunkNames[i]]
 			}
 		}
-		//console.groupEnd();
+		console.groupEnd();
 
 		return tmpValue;
 	},
@@ -107,6 +107,7 @@ CallSequence.prototype = {
 
 		var argsData = [];
 		for (var i = 0; i < args.length; i++){
+			console.log("arg", args[i])
 			//supposed that each argument is whether plain type or callsequence
 			if (args[i] instanceof CallSequence) {
 				argsData.push(args[i].makeCall(ctx));

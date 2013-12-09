@@ -56,9 +56,9 @@ function index(num){
 	console.log("bad index")
 	return num;
 }
-function repeat(){
+/*function repeat(){
 	return undefined
-}
+}*/
 
 
 /*

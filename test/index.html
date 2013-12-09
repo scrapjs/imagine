@@ -161,6 +161,13 @@
 			ok(new imagine.util.Expression('a(b)c').toString() === "a(b)c", "One symbol parsing: " + "a(b)c →" + new imagine.util.Expression('a(b)c').toString())
 
 			ok(new imagine.util.Expression('{{ index(1) }}').tokens.length == 2, "Catch zero token double write")
+
+			deepEqual(
+				new imagine.util.Expression(/{{ none(a.b) }}/).populate({a: { b: 1}}),
+				1,
+				"Nested params as arg: /{{ none(a.b) }}/ with ctx {a: { b: 1}} === 1");
+
+			deepEqual(new Expression(/{{ a.b }}/).populate({a: { b: 1}}), 1, "Nested params plain: /{{ a.b }}/")
 		})
 	
 		test("expression correctness", function(){
@@ -336,6 +343,17 @@
 
 			deepEqual(imagine([['{{ repeat(3) }}', '{{ index(2) }}'], ['{{ repeat(4) }}', '{{ index(4) }}']]), [[2,3,4], [4,5,6,7]], "indexes independence")
 
+			deepEqual(
+				imagine({
+					results: [
+						/{{ repeat(3) }}/,
+						/{{ index(request.startingIndex) }}/
+					]
+				}, {request: {startingIndex: 4}}),
+				[4,5,6],
+				"Nested regexps && passing special context"
+			)
+
 			//TODO: full-featured data-sources, nested evil
 		});
 
@@ -367,6 +385,27 @@
 
 			//TODO: learn to handle deferred promises of ajax etc
 			imagine(/{{ ajax({}, 213)|min(212) }}/)
+
+			imagine.ajax({
+				url: "/",
+				data: {
+					yl: /{{ float(30.30682364478708, 30.35682364478708) }}/,
+					yr: /{{ float(30.35682364478708, 30.4682364478708) }}/,
+					xr: /{{ float(59.940323644357655 -.5, 59.940323644357655 +.5) }}/,
+					xl: /{{ float(30.35682364478708, 30.4682364478708) }}/
+				},
+				success: function(resp){ console.log("ok", resp)}
+			}, {
+				results: [
+					/{{ repeat(20,40) }}/,
+					{
+						id: /{{ index(int(1200, 2200)).add(int(-400, 400)) }}/,
+						title: "Место {{ index }}",
+						url: "http://kudago.com/place/{{ index }}",
+						coords: [/ float({{ request.yl }}, {{ request.yr }}) /, / float({{ request.xl }}, {{ request.xr }}) /]
+					}
+				]
+			});
 		})
 
 

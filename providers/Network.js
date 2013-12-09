@@ -74,6 +74,6 @@ function ajax(settings, descriptor){
 
 	setTimeout(function(){
 		var descriptorObj = new DataDescriptor(descriptor);
-		opts.success(descriptorObj.populate(opts.data));
+		opts.success(descriptorObj.populate({request: opts.data}));
 	}, timeout);
 }

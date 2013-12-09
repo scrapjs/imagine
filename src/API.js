@@ -25,7 +25,7 @@ extend(I, {
 	/** @expose */
 	index: index,
 	/** @expose */
-	repeat: repeat,
+	//repeat: repeat,
 	/** @expose */
 	ajax: ajax,
 
