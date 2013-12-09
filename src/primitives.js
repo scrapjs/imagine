@@ -6,12 +6,6 @@
 //
 
 
-//JSON-generator ones
-//TODO: think up guid and index
-function numeric(a, b, format){
-
-}
-
 
 function firstName(gender){
 

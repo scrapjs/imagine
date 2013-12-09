@@ -31,3 +31,9 @@ E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") 
 	* THe main question is how to provide access to providers fromwithin CallSequence
 
 * Cache every data type: expression, repeatExpression, callSequence
+
+* Connect Numeral.js separately as a filter
+
+* Do morphological module
+
+* Do async: imagine.get, imagine.ajax, imagine.request

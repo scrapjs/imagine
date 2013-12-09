@@ -2,6 +2,7 @@
 * Everything that has to be before any other code is inited
 */
 
+
 /**
 * @const
 */
@@ -25,40 +26,7 @@ function extend(a){
 	return a;
 }
 
-/*
-*	Returns number between from and to.
-*	If @to is omitted, returns number between 0 and @from
-* number(from, to, round?), number(to, round?), number(round?)
-*/
-function number(a, b, c){
-	var from = -999999, to = 999999, r = false;
-	if (a === true || a === false || a === undefined){
-		r = !!a;
-	} else if (b === true || b === false || b === undefined) {
-		r = !!b;
-		to = parseFloat(a);
-		from = 0;
-	} else if (c === true || c === false || c === undefined) {
-		from = parseFloat(a);
-		to = parseFloat(b);
-		r = !!c
-	}
-	var result = Math.random() * (to - from) + from;
-	return r ? Math.round( result ) : result;
-}
-function float(from, to){
-	if (from === undefined) return number(false);
-	if (to === undefined) return number(from, false);
-	return number(from, to, false)
-}
-function int(from, to){
-	if (from === undefined) return number(true);
-	if (to === undefined) return number(from, true);
-	return number(from, to, true)
-}
-function bool(){
-	return !!Math.round(Math.random())
-}
+
 
 function none(arg){
 	return arg || null

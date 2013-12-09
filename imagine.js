@@ -1,7 +1,31 @@
 (function(){
 	/*
+*	How's project called
+*/
+var projectName = "imagine";
+
+/*
+* Main function - handles any param passed
+*/
+var I = function(argument, ctx){
+	if (typeof argument === "string" || argument instanceof RegExp){
+		var exp = expression(argument);
+		return exp.populate(ctx);
+	} else if (argument instanceof Array){
+		var repeatExp = new RepeatExpression(argument)
+		return repeatExp.populate(ctx);
+	} else {
+		var dd = new DataDescriptor(argument);
+		return dd.populate(ctx);
+	}
+}
+
+//Make global
+window[projectName] = I;
+	/*
 * Everything that has to be before any other code is inited
 */
+
 
 /**
 * @const
@@ -26,40 +50,7 @@ function extend(a){
 	return a;
 }
 
-/*
-*	Returns number between from and to.
-*	If @to is omitted, returns number between 0 and @from
-* number(from, to, round?), number(to, round?), number(round?)
-*/
-function number(a, b, c){
-	var from = -999999, to = 999999, r = false;
-	if (a === true || a === false || a === undefined){
-		r = !!a;
-	} else if (b === true || b === false || b === undefined) {
-		r = !!b;
-		to = parseFloat(a);
-		from = 0;
-	} else if (c === true || c === false || c === undefined) {
-		from = parseFloat(a);
-		to = parseFloat(b);
-		r = !!c
-	}
-	var result = Math.random() * (to - from) + from;
-	return r ? Math.round( result ) : result;
-}
-function float(from, to){
-	if (from === undefined) return number(false);
-	if (to === undefined) return number(from, false);
-	return number(from, to, false)
-}
-function int(from, to){
-	if (from === undefined) return number(true);
-	if (to === undefined) return number(from, true);
-	return number(from, to, true)
-}
-function bool(){
-	return !!Math.round(Math.random())
-}
+
 
 function none(arg){
 	return arg || null
@@ -569,12 +560,6 @@ function cut(str, value){
 //
 
 
-//JSON-generator ones
-//TODO: think up guid and index
-function numeric(a, b, format){
-
-}
-
 
 function firstName(gender){
 
@@ -636,126 +621,183 @@ function lorem(count, units){
 			break;
 	}
 }
-	/*
-*	How's project called
-*/
-var projectName = "imagine";
 
-/*
-* Main function - handles any param passed
+	/**
+* Special object to supply callable primitive. May consist of other call sequences.
+* E.g. `.some['property']('to', ['call'], { with: 'params'})[1][2].[3]`
+* It will make all necessary calls to obtain the most recent result
+*
+* Called within expressions only
+* @constructor
 */
-var I = function(argument, ctx){
-	if (typeof argument === "string" || argument instanceof RegExp){
-		var exp = expression(argument);
-		return exp.populate(ctx);
-	} else if (argument instanceof Array){
-		var repeatExp = new RepeatExpression(argument)
-		return repeatExp.populate(ctx);
-	} else {
-		var dd = new DataDescriptor(argument);
-		return dd.populate(ctx);
+function CallSequence(str){
+	if (!str) return undefined;
+
+	//console.group("callsequence", str, expression)
+
+	this.chunkNames = [];
+	this.chunkArguments = [];
+
+	//Parse chunks
+	//.name(args)
+	//['name'](args)
+	//Every callchunk is:
+	//{ name: '', arguments: [...]}
+
+	str = escapeWithin(str, "()", "''", '""');
+
+	//Make initial chunk matching
+	var match;
+	match = str.match(this.plainChunkRE);
+
+	if (!match) {
+		throw new Error("Cannot match initial call sequence chunk `" + str + "`")
+		//return null;
 	}
+
+	this.chunkNames.push(unescape(match[1]));
+	this.chunkArguments.push(parseArguments(unescape(match[2])));
+
+	str = str.replace(match[0], "");
+
+	if (!str) {
+		//console.log("callseq ok")
+		//console.groupEnd();
+		return;
+	}
+
+	//Match rest chunks
+	var c = 10; //limiter of infinite cycling
+	while ((match = str.match(this.plainChunkRE) || str.match(this.keyChunkRE)) && c){
+		//console.log("chunk", match)
+		this.chunkNames.push(unescape(match[1]));
+		this.chunkArguments.push(parseArguments(unescape(match[2])));
+		str = str.replace(match[0], "");
+		c--;
+	}
+
+	//console.log("callseq ok", this.chunkNames);
+	//console.groupEnd();
 }
 
-/**
-* Main keeper object
+CallSequence.prototype = {
+	plainChunkRE: /^([a-z_$][a-z0-9_$]*)[ ]?(?:\(([^\)]*)\))?\.?/i,
+	keyChunkRE: /^\[['"]((?:[^](?!['"]))+[^]|[^])['"]\][ ]?(?:\([^\)]*\))?\.?/i,
+	//indexChunkRE: /^/i,
+
+	/*
+	* Invokes sequence
+	*/
+	makeCall: function(ctx){
+		var context = ctx || I;
+		//console.group("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", ctx)
+
+		var chunkTarget = context[this.chunkNames[0]];
+		if (chunkTarget === undefined) chunkTarget = I[this.chunkNames[0]];
+		if (chunkTarget === undefined) {
+			console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", context)
+			//console.groupEnd();
+			return undefined;
+		}
+
+		if (typeof chunkTarget === "function"){
+			var tmpValue = chunkTarget.apply(context, this.getArgumentsData(this.chunkArguments[0], context));
+			//console.log("callseq result", tmpValue)
+		} else {
+			//TODO: what else value callsequence may possess? If it is object - probably I should eval it with data? No?
+			//console.groupEnd();
+			return chunkTarget;
+		}
+
+		//Go by chunks
+		for (var i = 1; i < this.chunkNames.length; i++){
+			if (typeof tmpValue[this.chunkNames[i]] === "function"){
+				var args = this.getArgumentsData(this.chunkArguments[i], context);
+				tmpValue = tmpValue[this.chunkNames[i]].apply(context, args);
+			} else {
+				tmpValue = tmpValue[this.chunkNames[i]]
+			}
+		}
+		//console.groupEnd();
+
+		return tmpValue;
+	},
+
+	/*
+	* Obtains real data by calling arguments
+	*/
+	getArgumentsData: function(args, ctx){
+		if (!args) return undefined;
+
+		var argsData = [];
+		for (var i = 0; i < args.length; i++){
+			//supposed that each argument is whether plain type or callsequence
+			if (args[i] instanceof CallSequence) {
+				argsData.push(args[i].makeCall(ctx));
+			} else {
+				argsData.push(args[i]);
+			}			
+		}
+
+		return argsData;
+	}
+}
+	/**
+* Filter caller
+* Used to call filter with special params in runtime
+* @constructor
 */
-extend(I, {
-	//settings
-	options:{
-		locale: 'en'
+function Filter(str){
+	//console.group("filter", str)
+
+	var firstBrace = str.indexOf("(");
+
+	if (firstBrace > 0){
+		this.name = str.slice(0, firstBrace).trim();
+		//console.log(str)
+		this.params = parseArguments(str.slice(firstBrace).slice(1,-1));
+	} else{
+		this.name = str.trim();
+	}
+
+	// Target filter function to call, like `capitalize`
+	this.fn = I.filters[this.name];
+
+	if (!this.fn){
+		console.error("no filter `" + this.name + "` found. `none` is used instead.")
+		this.fn = none;
+	}
+	//console.groupEnd();
+}
+
+Filter.prototype = {
+	/*
+	* Main handler: applies filter to the src passed with filtering function fn
+	*/
+	process: function(src, ctx){
+		//console.log("filter process:", src)
+		return this.fn.apply(this, [src].concat(this.getParams(ctx)));
 	},
 
-	//API - primitives and everything that fits to a language construction imagine.something
-	/** @expose */
-	any: any,
-	/** @expose */
-	int: int,
-	/** @expose */
-	float: float,
-	/** @expose */
-	number: number,
-	/** @expose */
-	bool: bool,
-	/** @expose */
-	none: none,
-	/** @expose */
-	index: index,
-	/** @expose */
-	repeat: repeat,
+	/*
+	* Obtains real parameters values
+	* As far as params can include DataSources to call, it has to be called first in order to get real data
+	*/
+	getParams: function(ctx){
+		if (!this.params) return undefined;
 
+		var result = [];
+		for (var i = 0; i < this.params.length; i++){
+			if (this.params[i] instanceof CallSequence) {
+				result.push(this.params[i].makeCall(ctx));
+			} else {
+				result.push(this.params[i]);
+			}
+		}
 
-	//Extendable filters set
-	/** @expose */
-	filters: {
-		//string
-		capitalize: capitalize,
-		capfirst: capitalize,
-		truncatechars: truncatechars,
-		escape: _escape,
-		e: _escape,
-		uppper: upper,
-		lower: lower,
-		url_encode: escape,
-		url_decode: unescape,
-		striptags: striptags,
-		sanitize: sanitize,
-		//arrays
-		sort: sort,
-		reverse: reverse,
-		first: first,
-		last: last,
-		uniq: uniq,
-		join: join,
-		title: titleCase,
-		addslashes: addslashes,
-		replace: replace,
-		slice: slice,
-		//numbers
-		fixed: fixed,
-		min: Math.max,
-		max: Math.min,
-		//other
-		'default': _default,
-		any: any,
-		random: any,
-		//djangos
-		add: add,
-		cut: cut
-	},
-
-	//utils - exposed technical and private functions
-	util: {
-		refBrackets: refBrackets, //TODO: remove from tests
-		extend: extend,
-		/** @expose */
-		escapeWithin: escapeWithin,
-		/** @expose */
-		unescapeWithin: unescapeWithin,
-		/** @expose */
-		escapeSymbols: escapeSymbols,
-		/** @expose */
-		unescapeSymbols: unescapeSymbols,
-		/** @expose */
-		parseArguments: parseArguments,
-		/** @expose */
-		expression: expression,
-		/** @expose */
-		replacements: replacements,
-
-		//Classes
-		/** @expose */
-		Expression: Expression,
-		DataDescriptor: DataDescriptor
-	},
-
-	//Set of data-providers, keyed by locale
-	//providers: {}
-});
-
-
-//Make global
-window[projectName] = I;
+		return result;
+	}
+}
 	/**
 *	Expression represents specific structure to generate.
 *	Provides context for tokens.
@@ -1423,182 +1465,6 @@ extend(AnyToken.prototype, Token.prototype, {
 	}
 })
 	/**
-* Special object to supply callable primitive. May consist of other call sequences.
-* E.g. `.some['property']('to', ['call'], { with: 'params'})[1][2].[3]`
-* It will make all necessary calls to obtain the most recent result
-*
-* Called within expressions only
-* @constructor
-*/
-function CallSequence(str){
-	if (!str) return undefined;
-
-	//console.group("callsequence", str, expression)
-
-	this.chunkNames = [];
-	this.chunkArguments = [];
-
-	//Parse chunks
-	//.name(args)
-	//['name'](args)
-	//Every callchunk is:
-	//{ name: '', arguments: [...]}
-
-	str = escapeWithin(str, "()", "''", '""');
-
-	//Make initial chunk matching
-	var match;
-	match = str.match(this.plainChunkRE);
-
-	if (!match) {
-		throw new Error("Cannot match initial call sequence chunk `" + str + "`")
-		//return null;
-	}
-
-	this.chunkNames.push(unescape(match[1]));
-	this.chunkArguments.push(parseArguments(unescape(match[2])));
-
-	str = str.replace(match[0], "");
-
-	if (!str) {
-		//console.log("callseq ok")
-		//console.groupEnd();
-		return;
-	}
-
-	//Match rest chunks
-	var c = 10; //limiter of infinite cycling
-	while ((match = str.match(this.plainChunkRE) || str.match(this.keyChunkRE)) && c){
-		//console.log("chunk", match)
-		this.chunkNames.push(unescape(match[1]));
-		this.chunkArguments.push(parseArguments(unescape(match[2])));
-		str = str.replace(match[0], "");
-		c--;
-	}
-
-	//console.log("callseq ok", this.chunkNames);
-	//console.groupEnd();
-}
-
-CallSequence.prototype = {
-	plainChunkRE: /^([a-z_$][a-z0-9_$]*)[ ]?(?:\(([^\)]*)\))?\.?/i,
-	keyChunkRE: /^\[['"]((?:[^](?!['"]))+[^]|[^])['"]\][ ]?(?:\([^\)]*\))?\.?/i,
-	//indexChunkRE: /^/i,
-
-	/*
-	* Invokes sequence
-	*/
-	makeCall: function(ctx){
-		var context = ctx || I;
-		//console.group("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", ctx)
-
-		var chunkTarget = context[this.chunkNames[0]];
-		if (chunkTarget === undefined) chunkTarget = I[this.chunkNames[0]];
-		if (chunkTarget === undefined) {
-			console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", context)
-			//console.groupEnd();
-			return undefined;
-		}
-
-		if (typeof chunkTarget === "function"){
-			var tmpValue = chunkTarget.apply(context, this.getArgumentsData(this.chunkArguments[0], context));
-			//console.log("callseq result", tmpValue)
-		} else {
-			//TODO: what else value callsequence may possess? If it is object - probably I should eval it with data? No?
-			//console.groupEnd();
-			return chunkTarget;
-		}
-
-		//Go by chunks
-		for (var i = 1; i < this.chunkNames.length; i++){
-			if (typeof tmpValue[this.chunkNames[i]] === "function"){
-				var args = this.getArgumentsData(this.chunkArguments[i], context);
-				tmpValue = tmpValue[this.chunkNames[i]].apply(context, args);
-			} else {
-				tmpValue = tmpValue[this.chunkNames[i]]
-			}
-		}
-		//console.groupEnd();
-
-		return tmpValue;
-	},
-
-	/*
-	* Obtains real data by calling arguments
-	*/
-	getArgumentsData: function(args, ctx){
-		if (!args) return undefined;
-
-		var argsData = [];
-		for (var i = 0; i < args.length; i++){
-			//supposed that each argument is whether plain type or callsequence
-			if (args[i] instanceof CallSequence) {
-				argsData.push(args[i].makeCall(ctx));
-			} else {
-				argsData.push(args[i]);
-			}			
-		}
-
-		return argsData;
-	}
-}
-	/**
-* Filter caller
-* Used to call filter with special params in runtime
-* @constructor
-*/
-function Filter(str){
-	//console.group("filter", str)
-
-	var firstBrace = str.indexOf("(");
-
-	if (firstBrace > 0){
-		this.name = str.slice(0, firstBrace).trim();
-		//console.log(str)
-		this.params = parseArguments(str.slice(firstBrace).slice(1,-1));
-	} else{
-		this.name = str.trim();
-	}
-
-	// Target filter function to call, like `capitalize`
-	this.fn = I.filters[this.name];
-
-	if (!this.fn){
-		console.error("no filter `" + this.name + "` found. `none` is used instead.")
-		this.fn = none;
-	}
-	//console.groupEnd();
-}
-
-Filter.prototype = {
-	/*
-	* Main handler: applies filter to the src passed with filtering function fn
-	*/
-	process: function(src, ctx){
-		//console.log("filter process:", src)
-		return this.fn.apply(this, [src].concat(this.getParams(ctx)));
-	},
-
-	/*
-	* Obtains real parameters values
-	* As far as params can include DataSources to call, it has to be called first in order to get real data
-	*/
-	getParams: function(ctx){
-		if (!this.params) return undefined;
-
-		var result = [];
-		for (var i = 0; i < this.params.length; i++){
-			if (this.params[i] instanceof CallSequence) {
-				result.push(this.params[i].makeCall(ctx));
-			} else {
-				result.push(this.params[i]);
-			}
-		}
-
-		return result;
-	}
-}
-	/**
 * Wrapper over expression no comprehend things like ["{{ repeat }}", ...things]
 * @constructor
 */
@@ -1889,5 +1755,242 @@ DataDescriptor.prototype = {
 	}
 }
 
+	/*
+* Number-related utils
+*/
+var Numbers = {
+	romanNumerals: "IVXLCDM"
+}
 
+//------------------------Functions
+//have to be separated cause they’re utils also
+
+
+/*
+*	Returns number between from and to.
+*	If @to is omitted, returns number between 0 and @from
+* number(from, to, round?), number(to, round?), number(round?)
+*/
+function number(a, b, c){
+	var from = -999999, to = 999999, r = false;
+	if (a === true || a === false || a === undefined){
+		r = !!a;
+	} else if (b === true || b === false || b === undefined) {
+		r = !!b;
+		to = parseFloat(a);
+		from = 0;
+	} else if (c === true || c === false || c === undefined) {
+		from = parseFloat(a);
+		to = parseFloat(b);
+		r = !!c
+	}
+	var result = Math.random() * (to - from) + from;
+	return r ? Math.round( result ) : result;
+}
+function float(from, to){
+	if (from === undefined) return number(false);
+	if (to === undefined) return number(from, false);
+	return number(from, to, false)
+}
+function int(from, to){
+	if (from === undefined) return number(true);
+	if (to === undefined) return number(from, true);
+	return number(from, to, true)
+}
+function bool(){
+	return !!Math.round(Math.random())
+}
+
+
+//JSON-generator numeric thing. Tests whether a & b are integers or not
+function numeric(a, b){
+	if (a === Math.round(a) && b === Math.round(b)){
+		return int(a, b)
+	} else {
+		return float(a, b)
+	}
+}
+	/**
+* Network-emulating stuff
+*/
+
+var Network = {
+	/**
+	* Network parameters
+	*/
+	settings: {
+		minTimeout: 50,
+		maxTimeout: 1000,
+		errorPercent: 2,
+		timeoutPercent: 5,
+		isOffline: false,
+	},
+
+	/**
+	* Emulated XHR request params. Not real ones, of course.
+	*/
+	ajaxDefaults: {
+		async: true,
+		crossDomain: false,
+		//data is passed to data descriptor as a context
+		data: I,
+		jsonp: false,
+		jsonpCallback: null,
+		type: "GET",
+		url: "",
+
+
+		//callbacks
+		beforeSend: null,
+		complete: function(){
+			console.log("ajax complete")
+		},
+		success: function(){
+			console.log("ajax success")
+		},
+		timeout: function(){
+			console.error("ajax timeout")
+		},
+		error: function(){
+			console.error("ajax error")
+		},
+		//set of callbacks responding to the code
+		statusCode: {
+
+		},
+		xhr: function(){
+
+		}
+	}
+
+
+}
+
+
+
+/**
+* implements jquery ajax function with request as DataDescriptor.
+* Every subsequent filter is called after the data being received
+*/
+function ajax(settings, descriptor){
+	var opts = extend({}, Network.ajaxDefaults, settings);
+
+	//emulate losses
+	if (int(100) < Network.settings.errorPercent){
+		return setTimeout(opts.error, Network.settings.minTimeout);
+	} else if (int(100) < Network.settings.timeoutPercent){
+		return setTimeout(opts.timeout, Network.settings.maxTimeout);
+	}
+	
+	var timeout = int(Network.settings.minTimeout, Network.settings.maxTimeout);
+
+	setTimeout(function(){
+		var descriptorObj = new DataDescriptor(descriptor);
+		opts.success(descriptorObj.populate(opts.data));
+	}, timeout);
+}
+
+	/**
+* exposed API
+*/
+extend(I, {
+	//settings
+	options:{
+		locale: 'en'
+	},
+
+	//API - primitives and everything that fits to a language construction imagine.something
+	/** @expose */
+	any: any,
+	/** @expose */
+	int: int,
+	/** @expose */
+	float: float,
+	/** @expose */
+	number: number,
+	/** @expose */
+	numeric: numeric,
+	/** @expose */
+	bool: bool,
+	/** @expose */
+	none: none,
+	/** @expose */
+	index: index,
+	/** @expose */
+	repeat: repeat,
+	/** @expose */
+	ajax: ajax,
+
+
+
+	//Extendable filters set
+	/** @expose */
+	filters: {
+		//string
+		capitalize: capitalize,
+		capfirst: capitalize,
+		truncatechars: truncatechars,
+		escape: _escape,
+		e: _escape,
+		uppper: upper,
+		lower: lower,
+		url_encode: escape,
+		url_decode: unescape,
+		striptags: striptags,
+		sanitize: sanitize,
+		//arrays
+		sort: sort,
+		reverse: reverse,
+		first: first,
+		last: last,
+		uniq: uniq,
+		join: join,
+		title: titleCase,
+		addslashes: addslashes,
+		replace: replace,
+		slice: slice,
+		//numbers
+		fixed: fixed,
+		min: Math.max,
+		max: Math.min,
+		//other
+		'default': _default,
+		any: any,
+		random: any,
+		//djangos
+		add: add,
+		cut: cut
+	},
+
+	//utils - exposed technical and private functions
+	util: {
+		refBrackets: refBrackets, //TODO: remove from tests
+		extend: extend,
+		/** @expose */
+		escapeWithin: escapeWithin,
+		/** @expose */
+		unescapeWithin: unescapeWithin,
+		/** @expose */
+		escapeSymbols: escapeSymbols,
+		/** @expose */
+		unescapeSymbols: unescapeSymbols,
+		/** @expose */
+		parseArguments: parseArguments,
+		/** @expose */
+		expression: expression,
+		/** @expose */
+		replacements: replacements,
+
+		//Classes
+		/** @expose */
+		Expression: Expression,
+		DataDescriptor: DataDescriptor
+	},
+
+	networkSettings: Network.settings,
+	ajaxDefaults: Network.ajaxDefaults
+
+	//Set of data-providers, keyed by locale
+	//providers: {}
+});
 })();

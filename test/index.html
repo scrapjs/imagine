@@ -9,27 +9,33 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
 	
-	<!--<script src="../src/util.js"></script>
+	<script src="../src/Imagine.js"></script>
+	<script src="../src/util.js"></script>
 	<script src="../src/filters.js"></script>
 	<script src="../src/primitives.js"></script>
-	<script src="../src/expressions/CallSequence.js"></script>
-	<script src="../src/expressions/Filter.js"></script>
-	<script src="../src/expressions/Expression.js"></script>
-	<script src="../src/expressions/Token.js"></script>
-	<script src="../src/expressions/GroupToken.js"></script>
-	<script src="../src/expressions/GroupRefToken.js"></script>
-	<script src="../src/expressions/StringToken.js"></script>
-	<script src="../src/expressions/DataToken.js"></script>
-	<script src="../src/expressions/AnyToken.js"></script>
-	<script src="../src/expressions/RepeatExpression.js"></script>
+
+	<script src="../src/CallSequence.js"></script>
+	<script src="../src/Filter.js"></script>
+	<script src="../src/Expression.js"></script>
+	<script src="../src/Token.js"></script>
+	<script src="../src/GroupToken.js"></script>
+	<script src="../src/GroupRefToken.js"></script>
+	<script src="../src/StringToken.js"></script>
+	<script src="../src/DataToken.js"></script>
+	<script src="../src/AnyToken.js"></script>
+	<script src="../src/RepeatExpression.js"></script>
 	<script src="../src/DataDescriptor.js"></script>
-	<script src="../src/Imagine.js"></script>-->
+
+	<script src="../providers/Numbers.js"></script>
+	<script src="../providers/Network.js"></script>
+
+	<script src="../src/API.js"></script>
+
 	
-	<script src="../imagine.min.js"></script>
+	<!--<script src="../imagine.min.js"></script>-->
 
 	<!-- extra stuff -->
-	<!--<script src="../src/filters.js"></script>
-	<script src="../src/primitives.js"></script>-->
+	<!--<script src="../providers/russian/Language.js"></script>-->
 
 
 	<script src="qunit.js"></script>
@@ -242,71 +248,6 @@
 		})
 
 
-		test("repeat & index", function(){
-
-			//repeating & index tests
-			//ok(repeat(1,3,true) === undefined, "Repeat basis")
-			deepEqual(imagine([1,2,3]), [1,2,3], "repeat straightaway call")
-
-			deepEqual(imagine(["{{ repeat(3) }}", '{{ index(12) }}']), [12,13,14], "trivial repeat")
-
-			deepEqual(imagine(['{{ index(22) }}']), [22], "index only")
-
-			strictEqual(imagine('{{ index(23) }}'), 23, "ignoring index")
-
-			strictEqual(imagine('{{ repeat(3) }}'), undefined, "ignoring repeat")
-
-			deepEqual(imagine(['{{ repeat(3) }}']), [,,,], "repeat with no subjects")
-
-			//deepEqual(imagine([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}])
-
-			deepEqual(imagine([{r:undefined }]), [{r: undefined}], "undefines 1")
-			deepEqual(imagine({r:undefined }), {r: undefined}, "undefines 2")
-
-			deepEqual(imagine([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}], "nested repeat")
-			deepEqual(imagine({id: '{{ index(32) }}', r: '{{ repeat(3) }}'}), {id: 32, r: undefined}, "plain index & repeat")
-
-			deepEqual(imagine(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,3,4,5,6,7], "separated indexes")
-
-			deepEqual(imagine(['{{ repeat(3) }}', {a: '{{ index(1) }}', b:'{{ index(2) }}', c: '{{ index }}'}]), 
-				[{a: 1, b: 1, c: 1}, {a: 2, b:2, c: 2}, {a: 3, b: 3, c: 3} ], "indexes within objects")
-
-			deepEqual(imagine([['{{ repeat(3) }}', '{{ index(2) }}'], ['{{ repeat(4) }}', '{{ index(4) }}']]), [[2,3,4], [4,5,6,7]], "indexes independence")
-
-			//TODO: full-featured data-sources, nested evil
-		});
-
-		test("imagine() function argument cases test", function(){
-			//regognize argument
-			ok(imagine(/a, b/), "imagine(/a, b/)")
-			ok(["1","2"].indexOf(imagine("1|2")) >= 0, "imagine(\"1|2\")")
-			ok([1,2].indexOf(imagine(/{{1}}|{{2}}/)) >= 0, "imagine(\"{{1}}|{{2}}\")")
-			ok(imagine({a: imagine.title}).a, "imagine({a: imagine.title})")			
-			strictEqual(imagine({a: function(){return 1}}).a, 1, "imagine({a: function(){}})")
-			ok(imagine(imagine.title), "imagine(imagine.title)")
-			ok(imagine(function(){return 1}), "imagine(function(){})")
-		})
-
-		test("primitives", function(){
-
-			//primitives
-			//+ imagine.email()
-			//+ imagine.number()
-			//+ imagine.person({ age: [31,45] })
-		})
-
-
-		test("populate real data descriptors", function(){
-			//console.log(populate({ name: Person.name }))
-			//ok(populate({ name: Person.name }), {})
-			//console.log(imagine(Internet.email))
-		})
-
-		test("data-providers", function(){
-			//console.log(imagine(Internet.email))
-		})
-
-
 		test("filters", function(){
 			//SWIG ones
 			//lists
@@ -361,6 +302,103 @@
 
 		test("formatter (TODO: format the way typographer does)", function(){
 			strictEqual(imagine("{{ 'some'|format }}"), "some with no mistakes", "format simple")
+		})
+
+
+		test("repeat & index", function(){
+
+			//repeating & index tests
+			//ok(repeat(1,3,true) === undefined, "Repeat basis")
+			deepEqual(imagine([1,2,3]), [1,2,3], "repeat straightaway call")
+
+			deepEqual(imagine(["{{ repeat(3) }}", '{{ index(12) }}']), [12,13,14], "trivial repeat")
+
+			deepEqual(imagine(['{{ index(22) }}']), [22], "index only")
+
+			strictEqual(imagine('{{ index(23) }}'), 23, "ignoring index")
+
+			strictEqual(imagine('{{ repeat(3) }}'), undefined, "ignoring repeat")
+
+			deepEqual(imagine(['{{ repeat(3) }}']), [,,,], "repeat with no subjects")
+
+			//deepEqual(imagine([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}])
+
+			deepEqual(imagine([{r:undefined }]), [{r: undefined}], "undefines 1")
+			deepEqual(imagine({r:undefined }), {r: undefined}, "undefines 2")
+
+			deepEqual(imagine([{id: '{{ index(32) }}', r: '{{ repeat(3) }}'}]), [{id: 32, r: undefined}], "nested repeat")
+			deepEqual(imagine({id: '{{ index(32) }}', r: '{{ repeat(3) }}'}), {id: 32, r: undefined}, "plain index & repeat")
+
+			deepEqual(imagine(['{{ repeat(7) }}', '{{ index(1) }}', '{{ index(2) }}', '{{ index }}']), [1,2,3,4,5,6,7], "separated indexes")
+
+			deepEqual(imagine(['{{ repeat(3) }}', {a: '{{ index(1) }}', b:'{{ index(2) }}', c: '{{ index }}'}]), 
+				[{a: 1, b: 1, c: 1}, {a: 2, b:2, c: 2}, {a: 3, b: 3, c: 3} ], "indexes within objects")
+
+			deepEqual(imagine([['{{ repeat(3) }}', '{{ index(2) }}'], ['{{ repeat(4) }}', '{{ index(4) }}']]), [[2,3,4], [4,5,6,7]], "indexes independence")
+
+			//TODO: full-featured data-sources, nested evil
+		});
+
+		test("imagine() function argument cases test", function(){
+			//regognize argument
+			ok(imagine(/a, b/), "imagine(/a, b/)")
+			ok(["1","2"].indexOf(imagine("1|2")) >= 0, "imagine(\"1|2\")")
+			ok([1,2].indexOf(imagine(/{{1}}|{{2}}/)) >= 0, "imagine(\"{{1}}|{{2}}\")")
+			ok(imagine({a: imagine.title}).a, "imagine({a: imagine.title})")			
+			strictEqual(imagine({a: function(){return 1}}).a, 1, "imagine({a: function(){}})")
+			ok(imagine(imagine.title), "imagine(imagine.title)")
+			ok(imagine(function(){return 1}), "imagine(function(){})")
+		})
+
+		test("providers: Number", function(){
+			ok([-4,-3,-2,-1,0].indexOf(imagine.numeric(-4)) >= 0, "numeric")
+
+			imagine.numeric(0,10)
+			imagine.numeric(0.00,10.00)
+
+			//primitives
+			//+ imagine.email()
+			//+ imagine.number()
+			//+ imagine.person({ age: [31,45] })
+		})
+
+		test("providers: Network", function(){
+			imagine.ajax({}, {});
+
+			//TODO: learn to handle deferred promises of ajax etc
+			imagine(/{{ ajax({}, 213)|min(212) }}/)
+		})
+
+
+		test("populate schema.org object", function(){
+			//console.log(populate({ name: Person.name }))
+			//ok(populate({ name: Person.name }), {})
+			//console.log(imagine(Internet.email))
+		})
+
+		test("generic data-providers", function(){
+			//console.log(imagine(Internet.email))
+		})
+
+
+		test("Russian language provider: nouns", function(){
+
+			equal(util.removePrefixes("пренаипрекраснейший"), "краснейший", "removePrefixes")
+
+			//падежатор
+			equal(imagine(/{{ noun("бурлесок")|case("nominative") }}/), "бурлесок")
+			equal(imagine(/{{ noun("бурлесок")|case("genitive") }}/), "бурлеска")
+			equal(imagine(/{{ noun("бурлесок")|case("dative") }}/), "бурлеску")
+			equal(imagine(/{{ noun("бурлесок")|case("accusative") }}/), "бурлеска")
+			equal(imagine(/{{ noun("бурлесок")|case("instrumental") }}/), "бурлеском")
+			equal(imagine(/{{ noun("бурлесок")|case("prepositional") }}/), "бурлеске")
+		})
+
+		test("Russian language provider: verbs", function(){
+		})
+
+		test("Russian language provider: phrases", function(){
+			equal(imagine('{{ "Алексей"|capfirst }} {{ verb("быть")|tense(-1)|person(3) }} {{ adverb("радостный") }} в «{{ place("Утруск")|case("prepositional") }}»'), "Алексей был радостный в «Утруске»", "Simple russian clauses")
 		})
 
 	</script>

@@ -2,7 +2,7 @@
 * ! not to create huge list of classes copying schema.org but create data-providers (like faker does) and dictionary defining what data is there what synonyms it has and how fields are generated. So to use schema.org just load dict. Meantime you can add your own dict.
 * Locales should be launchable from browser like `<script src="../lib/faker/en_EN.js"></script>`
 * Make plain primitives, do not hide functions behind providers. There are not that much of diverity to create procider namespaces.
-* Calling context shouldn’t be predefined. Pass it only on populate.
+* Calling context shouldn’t be predefined. Pass it only on populate. By the fact, it’s a data-object passed to template engine.
 
 ## Ideas
 * Think about splitting DataExp to the separate module
@@ -29,7 +29,6 @@
 	+ imagine.number()
 	+ imagine.person({ age: [31,45] })
 	+ imagine.expression()
-	+ 
 
 ## Description
 
