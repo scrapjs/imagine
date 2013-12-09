@@ -80,9 +80,9 @@ function index(num){
 	console.log("bad index")
 	return num;
 }
-function repeat(){
+/*function repeat(){
 	return undefined
-}
+}*/
 
 
 /*
@@ -348,7 +348,7 @@ function parseArguments(str){
 	var result = [];
 
 	for (var i = 0; i < args.length; i++){
-		result.push(recognizeParam(unescape(args[i])))
+		result.push(recognizeParam(unescape(args[i]).trim()))
 	}
 
 	return result;
@@ -701,12 +701,15 @@ CallSequence.prototype = {
 		}
 
 		if (typeof chunkTarget === "function"){
+			//console.log("chunkArgs", this.chunkArguments[0])
 			var tmpValue = chunkTarget.apply(context, this.getArgumentsData(this.chunkArguments[0], context));
 			//console.log("callseq result", tmpValue)
+		} else if(chunkTarget instanceof RegExp){
+			var tmpValue = expression(chunkTarget.source).populate(context);
 		} else {
 			//TODO: what else value callsequence may possess? If it is object - probably I should eval it with data? No?
 			//console.groupEnd();
-			return chunkTarget;
+			var tmpValue = chunkTarget;
 		}
 
 		//Go by chunks
@@ -714,6 +717,8 @@ CallSequence.prototype = {
 			if (typeof tmpValue[this.chunkNames[i]] === "function"){
 				var args = this.getArgumentsData(this.chunkArguments[i], context);
 				tmpValue = tmpValue[this.chunkNames[i]].apply(context, args);
+			} else if(tmpValue[this.chunkNames[i]] instanceof RegExp){
+				var tmpValue = expression(tmpValue[this.chunkNames[i]].source).populate(context);
 			} else {
 				tmpValue = tmpValue[this.chunkNames[i]]
 			}
@@ -1481,6 +1486,9 @@ function RepeatExpression(arr){
 
 	//match if first item is `{{ repeat }}` statement
 	var repeatMatch, restArgs, repeatStr;
+
+	if (arr[0] instanceof RegExp) arr[0] = arr[0].source;
+
 	if (typeof arr[0] === 'string' && (/\{\{[ ]*repeat[ \(\),0-9]*\}\}/.test(arr[0]))){
 		repeatStr = arr[0];
 		restArgs = arr.slice(1);
@@ -1518,7 +1526,7 @@ RepeatExpression.prototype = {
 	*/
 	//TODO: repeat with no context returns undefined. Always
 	repeat: function(a, b, c){
-		//console.group("repeatcall with ctx", this)
+		//console.group("repeatcall with repeat ctx", this, "and subjCtx", this.subjectContext)
 
 		if (!this.subjects || this.subjects.length === undefined) return undefined
 
@@ -1576,12 +1584,13 @@ RepeatExpression.prototype = {
 		if (this.lastIndex === undefined) {
 			this.lastIndex = from || 0;
 		}
-		//console.log("index fn", this.lastIndex)
+		//console.log("index fn", from)
 		return this.lastIndex;
 	},
 
 	populate: function(ctx){
-		//console.group("populate repeatex", this.subjects)
+		//console.group("populate repeatex", this.subjects, "within ctx", ctx)
+		extend(this.repeatContext.subjectContext, ctx)
 		var result = this.repeatEx.populate(this.repeatContext);
 		//console.groupEnd();
 		return result;
@@ -1722,7 +1731,8 @@ DataDescriptor.prototype = {
 		} else if (model instanceof RepeatExpression){
 			result = model.populate(ctx);
 		} else if (model instanceof Object){
-			if (this.stop >= 19){
+			//TODO: fix this value to one per populate
+			if (this.stop >= 40){
 				console.error("Too big depth of population. Reassert your DataDescriptor")
 				return undefined;
 			}
@@ -1886,7 +1896,7 @@ function ajax(settings, descriptor){
 
 	setTimeout(function(){
 		var descriptorObj = new DataDescriptor(descriptor);
-		opts.success(descriptorObj.populate(opts.data));
+		opts.success(descriptorObj.populate({request: opts.data}));
 	}, timeout);
 }
 
@@ -1917,7 +1927,7 @@ extend(I, {
 	/** @expose */
 	index: index,
 	/** @expose */
-	repeat: repeat,
+	//repeat: repeat,
 	/** @expose */
 	ajax: ajax,
 

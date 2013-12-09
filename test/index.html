@@ -168,6 +168,14 @@
 				"Nested params as arg: /{{ none(a.b) }}/ with ctx {a: { b: 1}} === 1");
 
 			deepEqual(new Expression(/{{ a.b }}/).populate({a: { b: 1}}), 1, "Nested params plain: /{{ a.b }}/")
+
+			ok(!isNaN(imagine({
+						val: /{{ float( request.yl ,  request.yr ) }}/
+					
+			}, {request: {
+					yl: /{{ float(30.30682364478708, 30.35682364478708) }}/,
+					yr: /{{ float(30.35682364478708, 30.4682364478708) }}/
+				}}).val), "Evaling contextually passed expressions")
 		})
 	
 		test("expression correctness", function(){
@@ -350,7 +358,7 @@
 						/{{ index(request.startingIndex) }}/
 					]
 				}, {request: {startingIndex: 4}}),
-				[4,5,6],
+				{results: [4,5,6]},
 				"Nested regexps && passing special context"
 			)
 
@@ -399,10 +407,10 @@
 				results: [
 					/{{ repeat(20,40) }}/,
 					{
-						id: /{{ index(int(1200, 2200)).add(int(-400, 400)) }}/,
+						id: /{{ index(int(1200, 2200))|add(int(-400, 400)) }}/,
 						title: "Место {{ index }}",
 						url: "http://kudago.com/place/{{ index }}",
-						coords: [/ float({{ request.yl }}, {{ request.yr }}) /, / float({{ request.xl }}, {{ request.xr }}) /]
+						coords: [/{{ float( request.yl ,  request.yr ) }}/, /{{ float( request.xl, request.xr ) }}/]
 					}
 				]
 			});
@@ -414,11 +422,6 @@
 			//ok(populate({ name: Person.name }), {})
 			//console.log(imagine(Internet.email))
 		})
-
-		test("generic data-providers", function(){
-			//console.log(imagine(Internet.email))
-		})
-
 
 		test("Russian language provider: nouns", function(){
 

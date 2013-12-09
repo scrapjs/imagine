@@ -324,7 +324,7 @@ function parseArguments(str){
 	var result = [];
 
 	for (var i = 0; i < args.length; i++){
-		result.push(recognizeParam(unescape(args[i])))
+		result.push(recognizeParam(unescape(args[i]).trim()))
 	}
 
 	return result;

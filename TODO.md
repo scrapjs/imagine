@@ -44,3 +44,5 @@ E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") 
 
 * Do not forget about tagTokens
 
+* Catch errors. For example, {{ int(12).add(4) }} has no method add.
+	* Or you can not pass some methods or params to context, like 

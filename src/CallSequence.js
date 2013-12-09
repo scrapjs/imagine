@@ -66,22 +66,25 @@ CallSequence.prototype = {
 	*/
 	makeCall: function(ctx){
 		var context = ctx || I;
-		console.group("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", ctx)
+		//console.group("callseq makeCall `" + this.chunkNames[0] + "` within ctx:", ctx)
 
 		var chunkTarget = context[this.chunkNames[0]];
 		if (chunkTarget === undefined) chunkTarget = I[this.chunkNames[0]];
 		if (chunkTarget === undefined) {
 			console.error("warning: no target found for chunk `" + this.chunkNames[0] + "` within context ", context)
-			console.groupEnd();
+			//console.groupEnd();
 			return undefined;
 		}
 
 		if (typeof chunkTarget === "function"){
+			//console.log("chunkArgs", this.chunkArguments[0])
 			var tmpValue = chunkTarget.apply(context, this.getArgumentsData(this.chunkArguments[0], context));
 			//console.log("callseq result", tmpValue)
+		} else if(chunkTarget instanceof RegExp){
+			var tmpValue = expression(chunkTarget.source).populate(context);
 		} else {
 			//TODO: what else value callsequence may possess? If it is object - probably I should eval it with data? No?
-			console.groupEnd();
+			//console.groupEnd();
 			var tmpValue = chunkTarget;
 		}
 
@@ -90,11 +93,13 @@ CallSequence.prototype = {
 			if (typeof tmpValue[this.chunkNames[i]] === "function"){
 				var args = this.getArgumentsData(this.chunkArguments[i], context);
 				tmpValue = tmpValue[this.chunkNames[i]].apply(context, args);
+			} else if(tmpValue[this.chunkNames[i]] instanceof RegExp){
+				var tmpValue = expression(tmpValue[this.chunkNames[i]].source).populate(context);
 			} else {
 				tmpValue = tmpValue[this.chunkNames[i]]
 			}
 		}
-		console.groupEnd();
+		//console.groupEnd();
 
 		return tmpValue;
 	},
@@ -107,7 +112,6 @@ CallSequence.prototype = {
 
 		var argsData = [];
 		for (var i = 0; i < args.length; i++){
-			console.log("arg", args[i])
 			//supposed that each argument is whether plain type or callsequence
 			if (args[i] instanceof CallSequence) {
 				argsData.push(args[i].makeCall(ctx));

@@ -133,7 +133,8 @@ DataDescriptor.prototype = {
 		} else if (model instanceof RepeatExpression){
 			result = model.populate(ctx);
 		} else if (model instanceof Object){
-			if (this.stop >= 19){
+			//TODO: fix this value to one per populate
+			if (this.stop >= 40){
 				console.error("Too big depth of population. Reassert your DataDescriptor")
 				return undefined;
 			}
