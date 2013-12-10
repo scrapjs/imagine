@@ -26,8 +26,8 @@
 	<script src="../src/RepeatExpression.js"></script>
 	<script src="../src/DataDescriptor.js"></script>
 
-	<script src="../providers/Numbers.js"></script>
-	<script src="../providers/Network.js"></script>
+	<script src="../src/providers/Numbers.js"></script>
+	<script src="../src/providers/Network.js"></script>
 
 	<script src="../src/API.js"></script>-->
 
@@ -35,7 +35,7 @@
 	<script src="../imagine.js"></script>
 
 	<!-- extra stuff -->
-	<!--<script src="../providers/russian/Language.js"></script>-->
+	<!--<script src="../src/providers/russian/Language.js"></script>-->
 
 
 	<script src="qunit.js"></script>
@@ -416,30 +416,18 @@
 			});
 		})
 
+		test("providers: Color", function(){
+			ok(imagine.color.names.length == imagine.color.hexCodes.length)
+		})
 
-		test("populate schema.org object", function(){
+		test("providers: schema.org set", function(){
 			//console.log(populate({ name: Person.name }))
 			//ok(populate({ name: Person.name }), {})
 			//console.log(imagine(Internet.email))
 		})
 
-		test("Russian language provider: nouns", function(){
+		test("providers: language", function(){
 
-			equal(util.removePrefixes("пренаипрекраснейший"), "краснейший", "removePrefixes")
-
-			//падежатор
-			equal(imagine(/{{ noun("бурлесок")|case("nominative") }}/), "бурлесок")
-			equal(imagine(/{{ noun("бурлесок")|case("genitive") }}/), "бурлеска")
-			equal(imagine(/{{ noun("бурлесок")|case("dative") }}/), "бурлеску")
-			equal(imagine(/{{ noun("бурлесок")|case("accusative") }}/), "бурлеска")
-			equal(imagine(/{{ noun("бурлесок")|case("instrumental") }}/), "бурлеском")
-			equal(imagine(/{{ noun("бурлесок")|case("prepositional") }}/), "бурлеске")
-		})
-
-		test("Russian language provider: verbs", function(){
-		})
-
-		test("Russian language provider: phrases", function(){
 			equal(imagine('{{ "Алексей"|capfirst }} {{ verb("быть")|tense(-1)|person(3) }} {{ adverb("радостный") }} в «{{ place("Утруск")|case("prepositional") }}»'), "Алексей был радостный в «Утруске»", "Simple russian clauses")
 		})
 

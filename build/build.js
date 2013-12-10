@@ -16,8 +16,8 @@
 	//#include ../src/RepeatExpression.js
 	//#include ../src/DataDescriptor.js
 
-	//#include ../providers/Numbers.js
-	//#include ../providers/Network.js
+	//#include ../src/providers/Numbers.js
+	//#include ../src/providers/Network.js
 
 	//#include ../src/API.js
 })();

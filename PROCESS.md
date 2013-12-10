@@ -2,7 +2,11 @@
 * ! not to create huge list of classes copying schema.org but create data-providers (like faker does) and dictionary defining what data is there what synonyms it has and how fields are generated. So to use schema.org just load dict. Meantime you can add your own dict.
 * Locales should be launchable from browser like `<script src="../lib/faker/en_EN.js"></script>`
 * Make plain primitives, do not hide functions behind providers. There are not that much of diverity to create procider namespaces.
-* Calling context shouldn’t be predefined. Pass it only on populate. By the fact, it’s a data-object passed to template engine.
+* Calling context shouldn’t be predefined. Pass it only on populate. By the fact, it’s a data-object passed to template engine, the same as in any other templating engine.
+* Language tools have to be separated from the rest part of project: you don’t have to connect all the *imagine.js* in order to use only language tools, like  declinator.
+	* There have to be only lemmas and a way to use real language classes: /{{ Noun("лемма")|case("prepositional") }}/
+
+
 
 ## Ideas
 * Think about splitting Expressions to separate module

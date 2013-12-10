@@ -46,3 +46,6 @@ E.g. {{ noun }} → Noun.plural = true, then {{ verb|with(" noun: \d1.plural ") 
 
 * Catch errors. For example, {{ int(12).add(4) }} has no method add.
 	* Or you can not pass some methods or params to context, like 
+
+
+* Handle Nouns inside the expressions as a strigs, implement toString calling, if it is linguistics objects

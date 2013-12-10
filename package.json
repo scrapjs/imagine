@@ -1,22 +1,22 @@
 {
-	"name": "imagine",
-	"version": "0.0.1",
+	"name": "imagine-js",
+	"version": "0.0.2",
 	"description": "Generate random schema.org-based data, populate RegExps, swig/django-like template system, sentences generator and more",
-	"homepage": "http://github.com/dfcreative/imagine.js",
+	"homepage": "https://github.com/dfcreative/imagine",
 	"keywords": ["faker", "data", "content", "generator"],
 	"author": {
 		"name": "Dmitry",
 		"email": "df.creative@gmail.com",
-		"url": "http://dfcreative.github.com/project/imagine-js/"
+		"url": "http://dfcreative.github.com/project/imagine/"
 	},
 	"licenses": [{
 		"type":"MIT",
-		"url":"http://github.com/tstone/gradient-js/blog/master/MIT.LICENSE"
+		"url":"http://dfcreative.github.com/project/imagine/"
 	}],
 	"repository": {
 		"type": "git",
-		"url": "http://github.com/dfcreative/imagine.js.git",
-		"web": "http://github.com/dfcreative/imagine.js"
+		"url": "https://github.com/dfcreative/imagine.git",
+		"web": "https://github.com/dfcreative/imagine"
 	},
 
 
